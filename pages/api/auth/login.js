@@ -29,8 +29,8 @@ export default async function handler(req, res) {
       return res.status(401).json({ success: false, message: 'Invalid credentials' })
     }
 
-    // Generate token
-    const token = generateToken(user._id)
+    // Generate token with role
+    const token = generateToken(user._id, user.role)
 
     res.status(200).json({
       success: true,

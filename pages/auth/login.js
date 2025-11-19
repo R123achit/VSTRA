@@ -31,7 +31,13 @@ export default function Login() {
       if (response.data.success) {
         login(response.data.data, response.data.token)
         toast.success('Login successful!')
-        router.push('/')
+        
+        // Redirect based on user role
+        if (response.data.data.role === 'admin') {
+          router.push('/admin/dashboard')
+        } else {
+          router.push('/')
+        }
       }
     } catch (error) {
       console.error('Login error:', error)

@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Head from 'next/head'
+import Link from 'next/link'
 import { useRouter } from 'next/router'
-import Navbar from '../../components/Navbar'
 import { useAuthStore } from '../../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -11,6 +11,12 @@ export default function AddProduct() {
   const router = useRouter()
   const { isAuthenticated, user } = useAuthStore()
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== 'admin') {
+      router.push('/admin/login')
+    }
+  }, [isAuthenticated, user])
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -76,7 +82,7 @@ export default function AddProduct() {
 
       if (response.data.success) {
         toast.success('Product added successfully!')
-        setTimeout(() => router.push('/shop'), 2000)
+        setTimeout(() => router.push('/admin/products'), 2000)
       }
     } catch (error) {
       console.error('Error adding product:', error)
@@ -86,15 +92,8 @@ export default function AddProduct() {
     }
   }
 
-  if (!isAuthenticated) {
-    return (
-      <>
-        <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Please login to access admin panel</p>
-        </div>
-      </>
-    )
+  if (!isAuthenticated || user?.role !== 'admin') {
+    return null
   }
 
   return (
@@ -103,14 +102,36 @@ export default function AddProduct() {
         <title>Add Product - VSTRA Admin</title>
       </Head>
       <Toaster position="top-center" />
-      <Navbar />
 
-      <main className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12 min-h-screen bg-vstra-light">
-        <div className="max-w-4xl mx-auto">
+      <div className="min-h-screen bg-gray-50">
+        {/* Admin Navbar */}
+        <nav className="bg-black text-white shadow-lg">
+          <div className="max-w-7xl mx-auto px-6 py-4">
+            <div className="flex items-center justify-between">
+              <Link href="/admin/dashboard">
+                <h1 className="text-2xl font-bold cursor-pointer">VSTRA Admin</h1>
+              </Link>
+              <div className="flex gap-4">
+                <Link href="/admin/products">
+                  <button className="text-sm bg-gray-700 text-white px-4 py-2 hover:bg-gray-600">
+                    View Products
+                  </button>
+                </Link>
+                <Link href="/">
+                  <button className="text-sm bg-white text-black px-4 py-2 hover:bg-gray-200">
+                    View Site
+                  </button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        </nav>
+
+        <main className="max-w-4xl mx-auto px-6 py-12">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl sm:text-5xl font-bold tracking-tighter mb-8"
+            className="text-4xl font-bold mb-8"
           >
             Add New Product
           </motion.h1>
@@ -119,7 +140,7 @@ export default function AddProduct() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             onSubmit={handleSubmit}
-            className="bg-white p-6 sm:p-8 shadow-lg space-y-6"
+            className="bg-white p-8 shadow-lg space-y-6"
           >
             {/* Product Name */}
             <div>
@@ -313,18 +334,26 @@ export default function AddProduct() {
             </div>
 
             {/* Submit */}
-            <div className="pt-4">
+            <div className="pt-4 flex gap-4">
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-black text-white py-4 text-sm font-semibold tracking-widest uppercase hover:bg-gray-900 transition-colors disabled:bg-gray-400"
+                className="flex-1 bg-black text-white py-4 font-semibold hover:bg-gray-900 transition-colors disabled:bg-gray-400"
               >
                 {loading ? 'Adding Product...' : 'Add Product'}
               </button>
+              <Link href="/admin/products">
+                <button
+                  type="button"
+                  className="px-8 py-4 border-2 border-black hover:bg-gray-100 font-semibold"
+                >
+                  Cancel
+                </button>
+              </Link>
             </div>
           </motion.form>
-        </div>
-      </main>
+        </main>
+      </div>
     </>
   )
 }

@@ -34,8 +34,8 @@ export default async function handler(req, res) {
       password,
     })
 
-    // Generate token
-    const token = generateToken(user._id)
+    // Generate token with role
+    const token = generateToken(user._id, user.role)
 
     res.status(201).json({
       success: true,
