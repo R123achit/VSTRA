@@ -4,6 +4,9 @@ import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
+import WishlistButton from '../../components/WishlistButton'
+import ReviewSection from '../../components/ReviewSection'
+import StyleAssistant from '../../components/StyleAssistant'
 import { useCartStore } from '../../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -87,6 +90,7 @@ export default function ProductDetail() {
       </Head>
       <Toaster position="top-center" />
       <Navbar />
+      <StyleAssistant />
 
       <main className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
@@ -97,13 +101,29 @@ export default function ProductDetail() {
               animate={{ opacity: 1, x: 0 }}
               className="space-y-4"
             >
-              <div className="aspect-[3/4] bg-gray-100 overflow-hidden">
+              <div className="aspect-[3/4] bg-gray-100 overflow-hidden relative group">
                 <img
                   src={product.images[0]}
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <WishlistButton product={product} size="lg" />
+                </div>
               </div>
+              {product.images.length > 1 && (
+                <div className="grid grid-cols-4 gap-2">
+                  {product.images.slice(1, 5).map((img, idx) => (
+                    <div key={idx} className="aspect-square bg-gray-100 overflow-hidden">
+                      <img
+                        src={img}
+                        alt={`${product.name} ${idx + 2}`}
+                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Details */}
@@ -215,15 +235,64 @@ export default function ProductDetail() {
                 )}
               </div>
 
-              {/* Add to Cart */}
-              <button
-                onClick={handleAddToCart}
-                disabled={product.stock === 0}
-                className="w-full bg-black text-white py-3 sm:py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase hover:bg-gray-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-              >
-                {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-              </button>
+              {/* Add to Cart & Wishlist */}
+              <div className="flex gap-3">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={product.stock === 0}
+                  className="flex-1 bg-black text-white py-3 sm:py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase hover:bg-gray-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                >
+                  {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
+                </button>
+                <div className="flex items-center">
+                  <WishlistButton product={product} size="lg" showLabel />
+                </div>
+              </div>
+
+              {/* Product Details */}
+              <div className="border-t border-gray-200 pt-6 space-y-4">
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer font-semibold">
+                    <span>Product Details</span>
+                    <svg
+                      className="w-5 h-5 transition-transform group-open:rotate-180"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="mt-4 text-sm text-gray-600 space-y-2">
+                    <p>Category: {product.category}</p>
+                    {product.subcategory && <p>Subcategory: {product.subcategory}</p>}
+                  </div>
+                </details>
+                <details className="group">
+                  <summary className="flex items-center justify-between cursor-pointer font-semibold">
+                    <span>Shipping & Returns</span>
+                    <svg
+                      className="w-5 h-5 transition-transform group-open:rotate-180"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </summary>
+                  <div className="mt-4 text-sm text-gray-600 space-y-2">
+                    <p>Free shipping on orders over $100</p>
+                    <p>30-day return policy</p>
+                    <p>Ships within 2-3 business days</p>
+                  </div>
+                </details>
+              </div>
             </motion.div>
+          </div>
+
+          {/* Reviews Section */}
+          <div className="mt-20">
+            <ReviewSection productId={product._id} />
           </div>
         </div>
       </main>

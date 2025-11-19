@@ -95,3 +95,68 @@ export const useAuthStore = create(
     }
   )
 )
+
+// Wishlist Store
+export const useWishlistStore = create(
+  persist(
+    (set, get) => ({
+      items: [],
+      
+      addToWishlist: (product) => {
+        const items = get().items
+        const exists = items.find(item => item._id === product._id)
+        
+        if (!exists) {
+          set({ items: [...items, product] })
+          return true
+        }
+        return false
+      },
+      
+      removeFromWishlist: (productId) => {
+        set({
+          items: get().items.filter(item => item._id !== productId),
+        })
+      },
+      
+      isInWishlist: (productId) => {
+        return get().items.some(item => item._id === productId)
+      },
+      
+      clearWishlist: () => set({ items: [] }),
+      
+      getWishlistCount: () => get().items.length,
+    }),
+    {
+      name: 'vstra-wishlist',
+    }
+  )
+)
+
+// Search Store
+export const useSearchStore = create(
+  persist(
+    (set, get) => ({
+      recentSearches: [],
+      
+      addSearch: (query) => {
+        const searches = get().recentSearches
+        const filtered = searches.filter(s => s.toLowerCase() !== query.toLowerCase())
+        set({
+          recentSearches: [query, ...filtered].slice(0, 10),
+        })
+      },
+      
+      clearSearchHistory: () => set({ recentSearches: [] }),
+      
+      removeSearch: (query) => {
+        set({
+          recentSearches: get().recentSearches.filter(s => s !== query),
+        })
+      },
+    }),
+    {
+      name: 'vstra-search',
+    }
+  )
+)

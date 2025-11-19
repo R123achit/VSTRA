@@ -8,6 +8,7 @@ import Featured from '../components/Featured'
 import Story from '../components/Story'
 import Lookbook from '../components/Lookbook'
 import Footer from '../components/Footer'
+import StyleAssistant from '../components/StyleAssistant'
 
 export default function Home() {
   useEffect(() => {
@@ -30,6 +31,7 @@ export default function Home() {
 
       <Toaster position="top-center" />
       <Navbar />
+      <StyleAssistant />
       
       <main>
         <Hero />

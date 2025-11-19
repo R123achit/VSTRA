@@ -2,7 +2,8 @@ import { motion } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
-import { useCartStore, useAuthStore } from '../store/useStore'
+import { useCartStore, useAuthStore, useWishlistStore } from '../store/useStore'
+import SearchBar from './SearchBar'
 
 export default function Navbar() {
   const router = useRouter()
@@ -10,6 +11,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const cartCount = useCartStore((state) => state.getCartCount())
+  const wishlistCount = useWishlistStore((state) => state.getWishlistCount())
   const { isAuthenticated, user, logout } = useAuthStore()
 
   useEffect(() => {
@@ -96,6 +98,37 @@ export default function Navbar() {
 
           {/* Right Side */}
           <div className="flex items-center space-x-4 sm:space-x-6">
+            {/* Search */}
+            <div className="hidden lg:block">
+              <SearchBar scrolled={scrolled} />
+            </div>
+
+            {/* Wishlist */}
+            {mounted && (
+              <Link href="/wishlist">
+                <motion.div
+                  whileHover={{ scale: 1.1 }}
+                  className="relative cursor-pointer"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                    />
+                  </svg>
+                  {wishlistCount > 0 && (
+                    <span className={`absolute -top-2 -right-2 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold ${
+                      scrolled ? 'bg-red-600' : 'bg-red-600'
+                    }`}>
+                      {wishlistCount}
+                    </span>
+                  )}
+                </motion.div>
+              </Link>
+            )}
+
             {/* Cart */}
             {mounted && (
               <Link href="/cart">

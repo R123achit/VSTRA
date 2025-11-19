@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/dist/ScrollTrigger'
 import Link from 'next/link'
+import WishlistButton from './WishlistButton'
 import { useCartStore } from '../store/useStore'
 import toast from 'react-hot-toast'
 import axios from 'axios'
@@ -99,6 +100,9 @@ export default function Featured() {
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500" />
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                    <WishlistButton product={product} size="md" />
+                  </div>
                 </div>
               </Link>
 

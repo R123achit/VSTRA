@@ -15,8 +15,6 @@ const nextConfig = {
   experimental: {
     esmExternals: true,
   },
-  // Export as server-side rendered
-  output: 'standalone',
 }
 
 module.exports = nextConfig

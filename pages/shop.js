@@ -5,6 +5,8 @@ import Link from 'next/link'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import WishlistButton from '../components/WishlistButton'
+import StyleAssistant from '../components/StyleAssistant'
 import { useCartStore } from '../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -23,12 +25,15 @@ export default function Shop() {
   const [showFilters, setShowFilters] = useState(false)
   const addToCart = useCartStore((state) => state.addToCart)
 
-  // Get category from URL query
+  // Get category and search from URL query
   useEffect(() => {
     if (router.query.category) {
       setCategory(router.query.category)
     }
-  }, [router.query.category])
+    if (router.query.search) {
+      setSearchQuery(router.query.search)
+    }
+  }, [router.query.category, router.query.search])
 
   useEffect(() => {
     fetchProducts()
@@ -129,6 +134,7 @@ export default function Shop() {
       </Head>
       <Toaster position="top-center" />
       <Navbar />
+      <StyleAssistant />
       
       <main className="pt-32 pb-20 px-6 lg:px-12 min-h-screen bg-vstra-light">
         <div className="max-w-7xl mx-auto">
@@ -365,13 +371,16 @@ export default function Shop() {
                               className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                             />
                             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-500" />
+                            <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                              <WishlistButton product={product} size="md" />
+                            </div>
                             {product.stock < 10 && product.stock > 0 && (
-                              <div className="absolute top-4 right-4 bg-red-600 text-white px-3 py-1 text-xs font-semibold">
+                              <div className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 text-xs font-semibold">
                                 Only {product.stock} left
                               </div>
                             )}
                             {product.stock === 0 && (
-                              <div className="absolute top-4 right-4 bg-gray-900 text-white px-3 py-1 text-xs font-semibold">
+                              <div className="absolute top-4 left-4 bg-gray-900 text-white px-3 py-1 text-xs font-semibold">
                                 Out of Stock
                               </div>
                             )}
