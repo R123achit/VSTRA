@@ -10,13 +10,12 @@ export default async function handler(req, res) {
   }
 
   try {
-    const token = req.headers.authorization?.split(' ')[1]
-    if (!token) {
+    const decoded = verifyToken(req)
+    if (!decoded) {
       return res.status(401).json({ message: 'No token provided' })
     }
 
-    const decoded = verifyToken(token)
-    if (!decoded || decoded.role !== 'admin') {
+    if (decoded.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' })
     }
 

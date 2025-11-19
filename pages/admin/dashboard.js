@@ -80,11 +80,18 @@ export default function AdminDashboard() {
               </div>
               <div className="flex items-center gap-4">
                 <Link href="/">
-                  <button className="text-sm bg-white text-black px-4 py-2 hover:bg-gray-200">
+                  <button className="text-sm bg-white text-black px-4 py-2 hover:bg-gray-200 transition-colors">
                     View Site
                   </button>
                 </Link>
-                <span className="text-sm">Admin: {user?.name}</span>
+                <Link href="/admin/profile">
+                  <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors cursor-pointer">
+                    <div className="w-8 h-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm ring-2 ring-slate-600/50">
+                      {user?.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <span className="text-sm font-medium">{user?.name}</span>
+                  </div>
+                </Link>
               </div>
             </div>
           </div>
