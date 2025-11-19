@@ -11,6 +11,12 @@ const nextConfig = {
   swcMinify: true,
   poweredByHeader: false,
   compress: true,
+  // Disable static optimization for pages that use router
+  experimental: {
+    esmExternals: true,
+  },
+  // Export as server-side rendered
+  output: 'standalone',
 }
 
 module.exports = nextConfig
