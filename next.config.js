@@ -13,7 +13,8 @@ const nextConfig = {
   compress: true,
   // Disable static optimization for pages that use router
   experimental: {
-    esmExternals: true,
+    // disable ESM externals to avoid parsing issues on some Node versions
+    esmExternals: false,
   },
 }
 

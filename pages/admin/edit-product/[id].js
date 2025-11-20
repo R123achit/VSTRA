@@ -38,19 +38,20 @@ export default function EditProduct() {
   const fetchProduct = async () => {
     try {
       const response = await axios.get(`/api/products/${id}`)
-      const product = response.data
+      const product = response.data.data || response.data
       setFormData({
-        name: product.name,
-        description: product.description,
-        price: product.price,
-        category: product.category,
-        stock: product.stock,
-        images: product.images,
+        name: product.name || '',
+        description: product.description || '',
+        price: product.price || '',
+        category: product.category || 'men',
+        stock: product.stock || '',
+        images: Array.isArray(product.images) ? product.images : [''],
         featured: product.featured || false,
-        rating: product.rating,
-        numReviews: product.numReviews
+        rating: product.rating || 0,
+        numReviews: product.numReviews || 0
       })
     } catch (error) {
+      console.error('Failed to load product:', error)
       toast.error('Failed to load product')
       router.push('/admin/products')
     } finally {
@@ -198,7 +199,7 @@ export default function EditProduct() {
 
               <div>
                 <label className="block text-sm font-semibold mb-2">Product Images (URLs)</label>
-                {formData.images.map((image, index) => (
+                {formData.images && formData.images.length > 0 ? formData.images.map((image, index) => (
                   <div key={index} className="flex gap-2 mb-2">
                     <input
                       type="url"
@@ -217,7 +218,9 @@ export default function EditProduct() {
                       </button>
                     )}
                   </div>
-                ))}
+                )) : (
+                  <div className="text-gray-500 text-sm mb-2">No images yet</div>
+                )}
                 <button
                   type="button"
                   onClick={addImageField}

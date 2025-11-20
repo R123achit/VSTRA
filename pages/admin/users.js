@@ -48,14 +48,19 @@ export default function AdminUsers() {
 
     try {
       const token = localStorage.getItem('token')
-      await axios.put(`/api/admin/users/${userId}`, 
+      console.log('Updating user role:', { userId, newRole })
+      
+      const response = await axios.put(`/api/admin/users/${userId}`, 
         { role: newRole },
         { headers: { Authorization: `Bearer ${token}` }}
       )
-      toast.success('User role updated')
+      
+      console.log('Role update response:', response.data)
+      toast.success(`User role updated to ${newRole}`)
       fetchUsers()
     } catch (error) {
-      toast.error('Failed to update user role')
+      console.error('Role update error:', error.response?.data || error.message)
+      toast.error(error.response?.data?.message || 'Failed to update user role')
     }
   }
 
@@ -218,3 +223,4 @@ export default function AdminUsers() {
     </>
   )
 }
+

@@ -49,13 +49,66 @@ export default async function handler(req, res) {
     }
   } else if (req.method === 'POST') {
     try {
-      const product = await Product.create(req.body)
-      res.status(201).json({ success: true, data: product })
+      console.log('\n=== POST /api/products ===')
+      console.log('Request body:', JSON.stringify(req.body, null, 2))
+      
+      // Validate required fields
+      const { name, description, price, category, images, stock } = req.body
+
+      if (!name || !description || !price || !category || !images || stock === undefined) {
+        console.error('Validation failed - missing fields')
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: name, description, price, category, images, stock' 
+        })
+      }
+
+      // Ensure images is an array
+      const imageArray = Array.isArray(images) ? images : [images]
+      
+      if (imageArray.length === 0 || !imageArray[0]) {
+        console.error('No valid images provided')
+        return res.status(400).json({
+          success: false,
+          message: 'At least one image URL is required'
+        })
+      }
+
+      // Create product with validated data
+      const productData = {
+        ...req.body,
+        images: imageArray,
+        price: parseFloat(price),
+        stock: parseInt(stock),
+        compareAtPrice: req.body.compareAtPrice ? parseFloat(req.body.compareAtPrice) : undefined,
+        featured: req.body.featured || false,
+        rating: 0,
+        numReviews: 0,
+      }
+
+      console.log('Creating product with data:', JSON.stringify(productData, null, 2))
+
+      const product = await Product.create(productData)
+      
+      console.log('✅ Product created successfully!')
+      console.log('Product ID:', product._id)
+      console.log('Product name:', product.name)
+      
+      res.status(201).json({ 
+        success: true, 
+        data: product,
+        message: 'Product added successfully'
+      })
     } catch (error) {
       console.error('Create product error:', error)
-      res.status(400).json({ success: false, message: error.message })
+      res.status(400).json({ 
+        success: false, 
+        message: error.message || 'Failed to create product',
+        error: error.toString()
+      })
     }
   } else {
     res.status(405).json({ success: false, message: 'Method not allowed' })
   }
 }
+

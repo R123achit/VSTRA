@@ -250,7 +250,7 @@ export default function Shop() {
                       className="w-full"
                     />
                     <p className="text-sm text-gray-600">
-                      ${priceRange[0]} - ${priceRange[1]}
+                      ₹{priceRange[0]} - ₹{priceRange[1]}
                     </p>
                   </div>
                 </div>
@@ -399,10 +399,10 @@ export default function Shop() {
                             </p>
                           )}
                           <div className="flex items-center gap-2">
-                            <p className="text-xl font-bold">${product.price}</p>
+                            <p className="text-xl font-bold">₹{product.price}</p>
                             {product.compareAtPrice && (
                               <p className="text-sm text-gray-400 line-through">
-                                ${product.compareAtPrice}
+                                ₹{product.compareAtPrice}
                               </p>
                             )}
                           </div>
@@ -445,3 +445,4 @@ export default function Shop() {
     </>
   )
 }
+

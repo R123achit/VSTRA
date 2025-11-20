@@ -66,27 +66,61 @@ export default function AddProduct() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    // Validate form
+    if (!formData.name || !formData.description || !formData.price || !formData.stock || !formData.images) {
+      toast.error('Please fill in all required fields')
+      return
+    }
+
+    if (formData.sizes.length === 0) {
+      toast.error('Please select at least one size')
+      return
+    }
+
     setLoading(true)
 
     try {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
+        compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : undefined,
         stock: parseInt(formData.stock),
-        images: formData.images.split(',').map(img => img.trim()),
+        images: formData.images.split(',').map(img => img.trim()).filter(img => img),
         colors: formData.colors.filter(c => c.name && c.hex),
       }
 
+      console.log('Submitting product:', productData)
+
       const response = await axios.post('/api/products', productData)
 
+      console.log('Response:', response.data)
+
       if (response.data.success) {
-        toast.success('Product added successfully!')
-        setTimeout(() => router.push('/admin/products'), 2000)
+        toast.success('Product added successfully! Redirecting...')
+        // Clear form
+        setFormData({
+          name: '',
+          description: '',
+          price: '',
+          compareAtPrice: '',
+          category: 'men',
+          subcategory: '',
+          images: '',
+          sizes: [],
+          colors: [{ name: '', hex: '' }],
+          stock: '',
+          featured: false,
+        })
+        // Redirect after showing success message
+        setTimeout(() => router.push('/admin/products'), 1500)
+      } else {
+        toast.error('Failed to add product')
       }
     } catch (error) {
       console.error('Error adding product:', error)
-      toast.error(error.response?.data?.message || 'Failed to add product')
+      console.error('Error response:', error.response?.data)
+      toast.error(error.response?.data?.message || 'Failed to add product. Check console for details.')
     } finally {
       setLoading(false)
     }
@@ -357,3 +391,4 @@ export default function AddProduct() {
     </>
   )
 }
+

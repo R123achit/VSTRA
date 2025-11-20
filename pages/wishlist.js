@@ -153,10 +153,10 @@ export default function Wishlist() {
                       </h3>
                     </Link>
                     <div className="flex items-center gap-2">
-                      <span className="text-lg font-bold">${product.price}</span>
+                      <span className="text-lg font-bold">?${product.price}</span>
                       {product.compareAtPrice && (
                         <span className="text-sm text-gray-500 line-through">
-                          ${product.compareAtPrice}
+                          ₹{product.compareAtPrice}
                         </span>
                       )}
                     </div>
@@ -249,3 +249,4 @@ export default function Wishlist() {
     </>
   )
 }
+

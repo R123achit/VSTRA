@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 import { useWishlistStore, useAuthStore } from '../store/useStore'
 import { useRouter } from 'next/router'
 import toast from 'react-hot-toast'
@@ -84,3 +84,4 @@ export default function WishlistButton({ product, size = 'md', showLabel = false
     </motion.button>
   )
 }
+

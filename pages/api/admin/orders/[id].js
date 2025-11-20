@@ -1,18 +1,19 @@
 import dbConnect from '../../../../lib/mongodb'
 import Order from '../../../../models/Order'
 import { verifyToken } from '../../../../lib/auth'
+import { sendOrderStatusEmail } from '../../../../lib/email'
 
 export default async function handler(req, res) {
   const { id } = req.query
 
   try {
     // Verify admin token
-    const token = req.headers.authorization?.split(' ')[1]
-    if (!token) {
+    const authHeader = req.headers.authorization
+    if (!authHeader) {
       return res.status(401).json({ message: 'No token provided' })
     }
 
-    const decoded = verifyToken(token)
+    const decoded = verifyToken(req)
     if (!decoded || decoded.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' })
     }
@@ -22,17 +23,38 @@ export default async function handler(req, res) {
     if (req.method === 'PUT') {
       const { status } = req.body
 
+      console.log('Updating order status:', { id, status })
+
+      if (!status || !['pending', 'processing', 'shipped', 'delivered', 'cancelled'].includes(status)) {
+        return res.status(400).json({ message: 'Invalid status' })
+      }
+
       const order = await Order.findByIdAndUpdate(
         id,
         { status },
         { new: true }
-      )
+      ).populate('user', 'name email')
 
       if (!order) {
         return res.status(404).json({ message: 'Order not found' })
       }
 
-      return res.status(200).json({ order })
+      console.log('Order status updated successfully:', order._id, order.status)
+
+      // Send status update email (don't wait for it)
+      if (order.user && order.user.email) {
+        sendOrderStatusEmail(order, order.user.email, order.user.name, status)
+          .then((result) => {
+            if (result.success) {
+              console.log('✅ Status update email sent to:', order.user.email)
+            }
+          })
+          .catch((error) => {
+            console.error('❌ Email error:', error)
+          })
+      }
+
+      return res.status(200).json({ success: true, order })
     }
 
     if (req.method === 'DELETE') {

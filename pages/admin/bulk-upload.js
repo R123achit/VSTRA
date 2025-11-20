@@ -34,31 +34,114 @@ export default function BulkUpload() {
 
   const parseCSV = (text) => {
     const lines = text.split('\n').filter(line => line.trim())
-    const headers = lines[0].split(',').map(h => h.trim())
+    
+    if (lines.length < 2) {
+      toast.error('CSV file is empty or invalid')
+      return
+    }
+    
+    const firstLine = lines[0].split(',').map(h => h.trim())
+    
+    // Check if first line is headers (contains text like "name", "description", etc.)
+    const isHeader = firstLine[0].toLowerCase().includes('name') || 
+                     firstLine[0].toLowerCase() === 'name' ||
+                     firstLine.some(h => ['name', 'description', 'price', 'category'].includes(h.toLowerCase()))
+    
+    const startIndex = isHeader ? 1 : 0
+    
+    if (isHeader) {
+      console.log('CSV Headers detected:', firstLine)
+    } else {
+      console.log('No headers detected, treating first line as data')
+    }
     
     const parsedProducts = []
-    for (let i = 1; i < lines.length; i++) {
+    const errors = []
+    
+    for (let i = startIndex; i < lines.length; i++) {
       const values = lines[i].split(',').map(v => v.trim())
-      if (values.length < 5) continue // Skip invalid rows
+      
+      if (values.length < 5) {
+        errors.push(`Row ${i + 1}: Not enough columns (need at least 5)`)
+        continue
+      }
 
+      // Parse and clean the data
+      const name = values[0]?.trim() || ''
+      const description = values[1]?.trim() || ''
+      const priceStr = values[2]?.trim() || '0'
+      const category = values[3]?.trim().toLowerCase() || 'men'
+      const stockStr = values[4]?.trim() || '0'
+      const imagesStr = values[5]?.trim() || ''
+      const sizesStr = values[6]?.trim() || ''
+      const featuredStr = values[7]?.trim().toLowerCase() || 'false'
+      
+      // Validate category
+      const validCategories = ['men', 'women', 'new-arrivals', 'accessories']
+      const finalCategory = validCategories.includes(category) ? category : 'men'
+      
+      // Parse images
+      const imageArray = imagesStr ? imagesStr.split('|').map(img => img.trim()).filter(img => img) : []
+      if (imageArray.length === 0) {
+        imageArray.push('https://images.unsplash.com/photo-1523381210434-271e8be1f52b?auto=format&fit=crop&w=800&q=80')
+      }
+      
+      // Parse sizes - convert numbers to strings if needed
+      let sizesArray = sizesStr ? sizesStr.split('|').map(s => s.trim()).filter(s => s) : []
+      
+      // If sizes are numbers (like shoe sizes), keep them as is, otherwise use standard sizes
+      if (sizesArray.length === 0) {
+        sizesArray = ['M', 'L', 'XL']
+      }
+      
       const product = {
-        name: values[0] || '',
-        description: values[1] || '',
-        price: parseFloat(values[2]) || 0,
-        category: values[3] || 'men',
-        stock: parseInt(values[4]) || 0,
-        images: values[5] ? values[5].split('|').map(img => img.trim()) : [],
-        sizes: values[6] ? values[6].split('|').map(s => s.trim()) : ['M', 'L'],
-        featured: values[7]?.toLowerCase() === 'true' || false,
+        name: name,
+        description: description,
+        price: parseFloat(priceStr) || 0,
+        category: finalCategory,
+        stock: parseInt(stockStr) || 0,
+        images: imageArray,
+        sizes: sizesArray,
+        featured: featuredStr === 'true',
       }
 
-      if (product.name && product.price > 0) {
-        parsedProducts.push(product)
+      // Validation
+      if (!product.name) {
+        errors.push(`Row ${i + 1}: Missing product name`)
+        continue
       }
+      
+      if (!product.description) {
+        errors.push(`Row ${i + 1}: Missing description`)
+        continue
+      }
+      
+      if (product.price <= 0) {
+        errors.push(`Row ${i + 1}: Invalid price (${values[2]})`)
+        continue
+      }
+      
+      if (product.stock < 0) {
+        errors.push(`Row ${i + 1}: Invalid stock (${values[4]})`)
+        continue
+      }
+
+      parsedProducts.push(product)
     }
 
+    console.log('Parsed products:', parsedProducts)
+    console.log('Parse errors:', errors)
+
     setProducts(parsedProducts)
-    toast.success(`Parsed ${parsedProducts.length} products from CSV`)
+    
+    if (parsedProducts.length > 0) {
+      toast.success(`✅ Parsed ${parsedProducts.length} valid products from CSV`)
+    }
+    
+    if (errors.length > 0) {
+      toast.error(`⚠️ ${errors.length} rows had errors (check console)`)
+      console.error('CSV Parse Errors:', errors)
+    }
   }
 
   const handleTextInput = () => {
@@ -75,33 +158,85 @@ export default function BulkUpload() {
       return
     }
 
+    const confirmUpload = window.confirm(`Are you sure you want to upload ${products.length} products to the database?`)
+    if (!confirmUpload) return
+
     setLoading(true)
     let successCount = 0
     let errorCount = 0
+    const errors = []
 
-    try {
-      for (const product of products) {
-        try {
-          await axios.post('/api/products', product)
+    console.log('Starting bulk upload of', products.length, 'products')
+
+    for (let i = 0; i < products.length; i++) {
+      const product = products[i]
+      
+      try {
+        console.log(`\n=== Uploading product ${i + 1}/${products.length} ===`)
+        console.log('Product data:', JSON.stringify(product, null, 2))
+        
+        const response = await axios.post('/api/products', product, {
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        })
+        
+        console.log('Response status:', response.status)
+        console.log('Response data:', response.data)
+        
+        if (response.data.success) {
           successCount++
-        } catch (error) {
+          console.log(`✅ Product ${i + 1} uploaded successfully:`, response.data.data._id)
+        } else {
           errorCount++
-          console.error('Error uploading product:', error)
+          errors.push(`${product.name}: ${response.data.message}`)
+          console.error(`❌ Product ${i + 1} failed:`, response.data.message)
         }
+      } catch (error) {
+        errorCount++
+        const errorMsg = error.response?.data?.message || error.message
+        errors.push(`${product.name}: ${errorMsg}`)
+        console.error(`❌ Error uploading product ${i + 1}:`)
+        console.error('Error response:', error.response?.data)
+        console.error('Error message:', error.message)
       }
+      
+      // Update progress
+      toast.loading(`Uploading... ${i + 1}/${products.length}`, { id: 'upload-progress' })
+      
+      // Small delay to avoid overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
 
-      toast.success(`✅ Uploaded ${successCount} products successfully!`)
-      if (errorCount > 0) {
-        toast.error(`❌ Failed to upload ${errorCount} products`)
-      }
+    toast.dismiss('upload-progress')
 
+    console.log('\n=== Upload Summary ===')
+    console.log(`Total: ${products.length}`)
+    console.log(`Success: ${successCount}`)
+    console.log(`Failed: ${errorCount}`)
+    
+    if (errors.length > 0) {
+      console.error('Errors:', errors)
+    }
+
+    if (successCount > 0) {
+      toast.success(`✅ Successfully uploaded ${successCount} out of ${products.length} products!`, {
+        duration: 5000
+      })
+    }
+    
+    if (errorCount > 0) {
+      toast.error(`❌ Failed to upload ${errorCount} products. Check console for details.`, {
+        duration: 5000
+      })
+    }
+
+    setLoading(false)
+
+    if (successCount > 0) {
       setTimeout(() => {
         router.push('/admin/products')
-      }, 2000)
-    } catch (error) {
-      toast.error('Upload failed')
-    } finally {
-      setLoading(false)
+      }, 3000)
     }
   }
 
@@ -243,7 +378,7 @@ Premium T-Shirt,High quality cotton,29.99,men,100,https://image.jpg,S|M|L,false"
                       <tr key={index} className="border-b hover:bg-gray-50">
                         <td className="px-4 py-2">{index + 1}</td>
                         <td className="px-4 py-2 font-semibold">{product.name}</td>
-                        <td className="px-4 py-2">${product.price}</td>
+                        <td className="px-4 py-2">₹{product.price}</td>
                         <td className="px-4 py-2">{product.category}</td>
                         <td className="px-4 py-2">{product.stock}</td>
                         <td className="px-4 py-2">{product.images.length}</td>
@@ -298,3 +433,4 @@ Premium T-Shirt,High quality cotton,29.99,men,100,https://image.jpg,S|M|L,false"
     </>
   )
 }
+

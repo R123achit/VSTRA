@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import { useRouter } from 'next/router'
 
 export default function AdminNav({ user }) {
@@ -69,3 +69,4 @@ export default function AdminNav({ user }) {
     </nav>
   )
 }
+

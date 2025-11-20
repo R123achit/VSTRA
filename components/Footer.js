@@ -1,4 +1,4 @@
-import { motion } from 'framer-motion'
+﻿import { motion } from 'framer-motion'
 
 export default function Footer() {
   return (
@@ -106,21 +106,63 @@ export default function Footer() {
           <div>
             <h4 className="text-sm font-semibold tracking-widest uppercase mb-6">Support</h4>
             <ul className="space-y-3">
-              {['FAQ', 'Shipping', 'Returns', 'Size Guide', 'Track Order'].map((item) => (
-                <li key={item}>
-                  <motion.a
-                    href="#"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      alert(`${item}\n\nThis would navigate to the ${item.toLowerCase()} page in a complete ecommerce site.`)
-                    }}
-                    whileHover={{ x: 5 }}
-                    className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
-                  >
-                    {item}
-                  </motion.a>
-                </li>
-              ))}
+              <li>
+                <motion.a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('FAQ\n\nThis would navigate to the FAQ page.')
+                  }}
+                  whileHover={{ x: 5 }}
+                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                >
+                  FAQ
+                </motion.a>
+              </li>
+              <li>
+                <motion.a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Shipping\n\nThis would navigate to the shipping page.')
+                  }}
+                  whileHover={{ x: 5 }}
+                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                >
+                  Shipping
+                </motion.a>
+              </li>
+              <li>
+                <motion.a
+                  href="/returns"
+                  whileHover={{ x: 5 }}
+                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                >
+                  Returns & Exchanges
+                </motion.a>
+              </li>
+              <li>
+                <motion.a
+                  href="/orders"
+                  whileHover={{ x: 5 }}
+                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                >
+                  My Orders
+                </motion.a>
+              </li>
+              <li>
+                <motion.a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Size Guide\n\nThis would navigate to the size guide page.')
+                  }}
+                  whileHover={{ x: 5 }}
+                  className="text-gray-400 hover:text-white transition-colors text-sm cursor-pointer"
+                >
+                  Size Guide
+                </motion.a>
+              </li>
             </ul>
           </div>
 
@@ -190,3 +232,4 @@ export default function Footer() {
     </footer>
   )
 }
+

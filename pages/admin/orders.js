@@ -24,13 +24,23 @@ export default function AdminOrders() {
     try {
       setLoading(true)
       const token = localStorage.getItem('token')
+      
+      if (!token) {
+        toast.error('Please login as admin')
+        router.push('/admin/login')
+        return
+      }
+
+      console.log('Fetching admin orders...')
       const response = await axios.get('/api/admin/orders', {
         headers: { Authorization: `Bearer ${token}` }
       })
-      setOrders(response.data.orders)
+      
+      console.log('Admin orders response:', response.data)
+      setOrders(response.data.orders || [])
     } catch (error) {
-      console.error('Error fetching orders:', error)
-      toast.error('Failed to load orders')
+      console.error('Error fetching orders:', error.response?.data || error.message)
+      toast.error(error.response?.data?.message || 'Failed to load orders')
     } finally {
       setLoading(false)
     }
@@ -39,14 +49,26 @@ export default function AdminOrders() {
   const handleStatusChange = async (orderId, newStatus) => {
     try {
       const token = localStorage.getItem('token')
-      await axios.put(`/api/admin/orders/${orderId}`, 
+      
+      if (!token) {
+        toast.error('Please login as admin')
+        router.push('/admin/login')
+        return
+      }
+
+      console.log('Updating order status:', { orderId, newStatus })
+      
+      const response = await axios.put(`/api/admin/orders/${orderId}`, 
         { status: newStatus },
         { headers: { Authorization: `Bearer ${token}` }}
       )
-      toast.success('Order status updated')
+      
+      console.log('Status update response:', response.data)
+      toast.success(`Order status updated to ${newStatus}`)
       fetchOrders()
     } catch (error) {
-      toast.error('Failed to update order')
+      console.error('Status update error:', error.response?.data || error.message)
+      toast.error(error.response?.data?.message || 'Failed to update order')
     }
   }
 
@@ -149,7 +171,7 @@ export default function AdminOrders() {
                           {order.orderItems.length}
                         </td>
                         <td className="px-6 py-4 font-bold">
-                          ${order.totalPrice}
+                          ₹{order.totalPrice}
                         </td>
                         <td className="px-6 py-4">
                           <select
@@ -171,9 +193,9 @@ export default function AdminOrders() {
 Order Details:
 - Order ID: ${order._id}
 - Customer: ${order.user?.name} (${order.user?.email})
-- Items: ${order.orderItems.map(item => `\n  • ${item.name} x${item.quantity} - $${item.price}`).join('')}
-- Shipping: ${order.shippingAddress.address}, ${order.shippingAddress.city}
-- Total: $${order.totalPrice}
+- Items: ${order.orderItems.map(item => `\n  • ${item.name} x${item.quantity} - ₹${item.price}`).join('')}
+- Shipping: ${order.shippingAddress.fullName}, ${order.shippingAddress.city}
+- Total: ₹${order.totalPrice}
                               `
                               alert(details)
                             }}
@@ -194,3 +216,4 @@ Order Details:
     </>
   )
 }
+

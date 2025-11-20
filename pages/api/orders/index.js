@@ -1,6 +1,8 @@
 import connectDB from '../../../lib/mongodb'
 import Order from '../../../models/Order'
+import User from '../../../models/User'
 import { authMiddleware } from '../../../lib/auth'
+import { sendOrderConfirmationEmail } from '../../../lib/email'
 
 async function handler(req, res) {
   await connectDB()
@@ -25,6 +27,35 @@ async function handler(req, res) {
 
       const order = await Order.create(orderData)
 
+      // Get user details for email
+      const user = await User.findById(req.userId)
+      
+      console.log('📧 Attempting to send email to:', user?.email)
+      console.log('📧 Email config check:', {
+        hasEmailUser: !!process.env.EMAIL_USER,
+        hasEmailPassword: !!process.env.EMAIL_PASSWORD,
+        emailUser: process.env.EMAIL_USER
+      })
+      
+      // Send confirmation email (don't wait for it)
+      if (user && user.email) {
+        sendOrderConfirmationEmail(order, user.email, user.name)
+          .then((result) => {
+            if (result.success) {
+              console.log('✅ Order confirmation email sent successfully to:', user.email)
+              console.log('✅ Message ID:', result.messageId)
+            } else {
+              console.error('❌ Failed to send email:', result.error)
+            }
+          })
+          .catch((error) => {
+            console.error('❌ Email sending error:', error.message)
+            console.error('❌ Full error:', error)
+          })
+      } else {
+        console.error('❌ No user email found for user ID:', req.userId)
+      }
+
       res.status(201).json({ success: true, data: order })
     } catch (error) {
       console.error('Create order error:', error)
@@ -36,3 +67,4 @@ async function handler(req, res) {
 }
 
 export default authMiddleware(handler)
+

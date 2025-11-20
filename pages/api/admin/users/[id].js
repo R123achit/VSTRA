@@ -7,12 +7,12 @@ export default async function handler(req, res) {
 
   try {
     // Verify admin token
-    const token = req.headers.authorization?.split(' ')[1]
-    if (!token) {
+    const authHeader = req.headers.authorization
+    if (!authHeader) {
       return res.status(401).json({ message: 'No token provided' })
     }
 
-    const decoded = verifyToken(token)
+    const decoded = verifyToken(req)
     if (!decoded || decoded.role !== 'admin') {
       return res.status(403).json({ message: 'Admin access required' })
     }
@@ -21,6 +21,12 @@ export default async function handler(req, res) {
 
     if (req.method === 'PUT') {
       const { role } = req.body
+
+      console.log('Updating user role:', { id, role })
+
+      if (!role || !['user', 'admin'].includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' })
+      }
 
       const user = await User.findByIdAndUpdate(
         id,
@@ -32,7 +38,8 @@ export default async function handler(req, res) {
         return res.status(404).json({ message: 'User not found' })
       }
 
-      return res.status(200).json({ user })
+      console.log('User role updated successfully:', user._id, user.role)
+      return res.status(200).json({ success: true, user })
     }
 
     if (req.method === 'DELETE') {

@@ -174,7 +174,7 @@ export default function AdminProducts() {
                           </span>
                         </td>
                         <td className="px-6 py-4 font-semibold">
-                          ${product.price}
+                          ₹{product.price}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`px-3 py-1 text-sm rounded ${
@@ -242,3 +242,4 @@ export default function AdminProducts() {
     </>
   )
 }
+

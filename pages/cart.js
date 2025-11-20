@@ -67,7 +67,7 @@ export default function Cart() {
                       <h3 className="text-lg sm:text-xl font-semibold mb-2">{item.name}</h3>
                       <p className="text-sm sm:text-base text-gray-600 mb-1">Size: {item.size}</p>
                       <p className="text-sm sm:text-base text-gray-600 mb-2 sm:mb-4">Color: {item.color}</p>
-                      <p className="text-base sm:text-lg font-semibold">${item.price}</p>
+                      <p className="text-base sm:text-lg font-semibold">₹{item.price}</p>
                     </div>
                     <div className="flex sm:flex-col justify-between sm:justify-between items-center sm:items-end">
                       <button
@@ -111,7 +111,7 @@ export default function Cart() {
                   <div className="space-y-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-gray-600">Subtotal</span>
-                      <span className="font-semibold">${getCartTotal().toFixed(2)}</span>
+                      <span className="font-semibold">₹{getCartTotal().toFixed(2)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Shipping</span>
@@ -119,7 +119,7 @@ export default function Cart() {
                     </div>
                     <div className="border-t pt-4 flex justify-between text-xl font-bold">
                       <span>Total</span>
-                      <span>${getCartTotal().toFixed(2)}</span>
+                      <span>₹{getCartTotal().toFixed(2)}</span>
                     </div>
                   </div>
                   <button
@@ -145,3 +145,4 @@ export default function Cart() {
     </>
   )
 }
+

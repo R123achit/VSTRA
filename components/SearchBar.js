@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+﻿import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -261,3 +261,4 @@ export default function SearchBar({ scrolled }) {
     </div>
   )
 }
+

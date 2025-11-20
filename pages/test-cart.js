@@ -82,7 +82,7 @@ export default function TestCart() {
                       <p className="text-sm">Quantity: {item.quantity}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold">${item.price}</p>
+                      <p className="font-bold">?${item.price}</p>
                       <button
                         onClick={() => removeFromCart(item._id, item.size, item.color)}
                         className="text-red-600 text-sm hover:underline"
@@ -111,3 +111,4 @@ export default function TestCart() {
     </>
   )
 }
+

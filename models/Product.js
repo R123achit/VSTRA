@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+﻿import mongoose from 'mongoose'
 
 const ProductSchema = new mongoose.Schema({
   name: {
@@ -33,7 +33,6 @@ const ProductSchema = new mongoose.Schema({
   }],
   sizes: [{
     type: String,
-    enum: ['XS', 'S', 'M', 'L', 'XL', 'XXL'],
   }],
   colors: [{
     name: String,

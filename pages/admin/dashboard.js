@@ -117,7 +117,9 @@ export default function AdminDashboard() {
               </div>
               <div className="bg-white p-6 shadow-lg border-l-4 border-purple-600">
                 <p className="text-gray-600 text-sm mb-2">Total Revenue</p>
-                <p className="text-4xl font-bold">${stats.totalRevenue}</p>
+                <p className="text-4xl font-bold">
+                  ₹{stats.totalRevenue?.toLocaleString('en-IN') || 0}
+                </p>
               </div>
               <div className="bg-white p-6 shadow-lg border-l-4 border-orange-600">
                 <p className="text-gray-600 text-sm mb-2">Total Users</p>
@@ -216,3 +218,4 @@ export default function AdminDashboard() {
     </>
   )
 }
+

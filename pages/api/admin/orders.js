@@ -19,11 +19,12 @@ export default async function handler(req, res) {
     if (req.method === 'GET') {
       const orders = await Order.find()
         .populate('user', 'name email')
-        .populate('items.product', 'name price images')
+        .populate('orderItems.product', 'name price images')
         .sort({ createdAt: -1 })
         .lean()
       
-      return res.status(200).json({ orders })
+      console.log('Admin orders fetched:', orders.length)
+      return res.status(200).json({ success: true, orders })
     }
 
     if (req.method === 'PUT') {
@@ -39,13 +40,14 @@ export default async function handler(req, res) {
         { new: true }
       )
         .populate('user', 'name email')
-        .populate('items.product', 'name price images')
+        .populate('orderItems.product', 'name price images')
 
       if (!order) {
         return res.status(404).json({ message: 'Order not found' })
       }
 
-      return res.status(200).json({ order })
+      console.log('Order status updated:', order._id, status)
+      return res.status(200).json({ success: true, order })
     }
 
     if (req.method === 'DELETE') {
@@ -65,3 +67,4 @@ export default async function handler(req, res) {
     res.status(500).json({ message: 'Server error', error: error.message })
   }
 }
+
