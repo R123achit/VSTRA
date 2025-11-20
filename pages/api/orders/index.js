@@ -9,11 +9,38 @@ async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
+      // Find orders by user field
       const orders = await Order.find({ user: req.userId })
-        .populate('orderItems.product')
         .sort({ createdAt: -1 })
+        .lean()
 
-      res.status(200).json({ success: true, data: orders })
+      console.log('📦 Found orders for user:', req.userId, 'Count:', orders.length)
+      
+      // Transform orders to match frontend expectations
+      const transformedOrders = orders.map(order => ({
+        _id: order._id,
+        createdAt: order.createdAt,
+        status: order.status.charAt(0).toUpperCase() + order.status.slice(1), // Capitalize status
+        totalAmount: order.totalPrice,
+        items: order.orderItems.map(item => ({
+          name: item.name,
+          size: item.size,
+          color: item.color,
+          quantity: item.quantity,
+          price: item.price,
+          image: item.image
+        })),
+        shippingAddress: order.shippingAddress,
+        paymentMethod: order.paymentMethod,
+        trackingNumber: order.trackingNumber,
+        shippingCost: order.shippingPrice,
+        tax: order.taxPrice
+      }))
+      
+      console.log('📦 Transformed orders:', transformedOrders.length)
+      
+      // Return orders directly (not wrapped in success/data)
+      res.status(200).json(transformedOrders)
     } catch (error) {
       console.error('Get orders error:', error)
       res.status(500).json({ success: false, message: 'Server error' })

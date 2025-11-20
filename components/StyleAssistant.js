@@ -128,37 +128,26 @@ export default function StyleAssistant() {
       `}</style>
       
       {/* Floating Button */}
-      <AnimatePresence>
-        {!isOpen && (
-          <motion.button
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setIsOpen(true)}
-            className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 rounded-full shadow-2xl flex items-center justify-center text-white text-xl md:text-2xl hover:shadow-purple-500/50 transition-shadow"
-          >
-            <span className="relative">
-              ✨
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full animate-pulse" />
-            </span>
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-50 w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-purple-600 via-pink-600 to-red-600 rounded-full shadow-2xl flex items-center justify-center text-white text-xl md:text-2xl hover:scale-110 transition-transform"
+        >
+          <span className="relative">
+            ✨
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full" />
+          </span>
+        </button>
+      )}
 
       {/* Chat Window */}
-      <AnimatePresence>
-        {isOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: 100, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 100, scale: 0.8 }}
-            className="fixed inset-4 md:inset-auto md:bottom-6 md:right-6 z-50 md:w-[420px] md:h-[650px] bg-white rounded-2xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden"
-            style={{
-              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-            }}
-          >
+      {isOpen && (
+        <div
+          className="fixed inset-4 md:inset-auto md:bottom-6 md:right-6 z-50 md:w-[420px] md:h-[650px] bg-white rounded-2xl md:rounded-3xl shadow-2xl flex flex-col overflow-hidden"
+          style={{
+            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+          }}
+        >
             {/* Header */}
             <div className="bg-white/10 backdrop-blur-xl p-4 md:p-6 flex items-center justify-between border-b border-white/20">
               <div className="flex items-center gap-2 md:gap-3">
@@ -187,10 +176,8 @@ export default function StyleAssistant() {
             <div className="bg-white/10 backdrop-blur-xl p-3 md:p-4 border-b border-white/20">
               <div className="grid grid-cols-4 gap-1.5 md:gap-2">
                 {quickActions.map((action, idx) => (
-                  <motion.button
+                  <button
                     key={idx}
-                    whileHover={{ scale: 1.05, y: -2 }}
-                    whileTap={{ scale: 0.95 }}
                     onClick={() => handleQuickAction(action.query)}
                     className="bg-white/20 backdrop-blur-sm rounded-lg md:rounded-xl p-2 md:p-3 flex flex-col items-center gap-0.5 md:gap-1 hover:bg-white/30 transition-colors"
                   >
@@ -198,7 +185,7 @@ export default function StyleAssistant() {
                     <span className="text-white text-[9px] md:text-[10px] font-medium text-center leading-tight">
                       {action.text}
                     </span>
-                  </motion.button>
+                  </button>
                 ))}
               </div>
             </div>
@@ -206,10 +193,8 @@ export default function StyleAssistant() {
             {/* Messages */}
             <div className="flex-1 overflow-y-auto p-3 md:p-6 space-y-3 md:space-y-4 bg-white/5 backdrop-blur-xl custom-scrollbar">
               {messages.map((message, idx) => (
-                <motion.div
+                <div
                   key={idx}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
                   className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
                 >
                   <div
@@ -225,11 +210,10 @@ export default function StyleAssistant() {
                     {message.products && message.products.length > 0 && (
                       <div className="mt-3 md:mt-4 space-y-2">
                         {message.products.map((product, pidx) => (
-                          <motion.a
+                          <a
                             key={pidx}
                             href={`/product/${product._id}`}
                             target="_blank"
-                            whileHover={{ scale: 1.02 }}
                             className="flex gap-2 md:gap-3 bg-gray-50 rounded-lg md:rounded-xl p-2 md:p-3 hover:bg-gray-100 transition-colors"
                           >
                             <img
@@ -241,7 +225,7 @@ export default function StyleAssistant() {
                               <h4 className="font-semibold text-xs md:text-sm truncate">{product.name}</h4>
                               <p className="text-[10px] md:text-xs text-gray-600">${product.price}</p>
                             </div>
-                          </motion.a>
+                          </a>
                         ))}
                       </div>
                     )}
@@ -253,16 +237,12 @@ export default function StyleAssistant() {
                       })}
                     </p>
                   </div>
-                </motion.div>
+                </div>
               ))}
 
               {/* Typing Indicator */}
               {isTyping && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="flex justify-start"
-                >
+                <div className="flex justify-start">
                   <div className="bg-white rounded-2xl p-4 shadow-lg">
                     <div className="flex gap-1">
                       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
@@ -270,7 +250,7 @@ export default function StyleAssistant() {
                       <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )}
 
               <div ref={messagesEndRef} />
@@ -281,15 +261,13 @@ export default function StyleAssistant() {
               <div className="bg-white/10 backdrop-blur-xl p-3 border-t border-white/20">
                 <div className="flex gap-2 overflow-x-auto pb-1 custom-scrollbar-horizontal">
                   {suggestions.map((suggestion, idx) => (
-                    <motion.button
+                    <button
                       key={idx}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
                       onClick={() => handleSend(suggestion)}
                       className="bg-white/20 backdrop-blur-sm text-white text-xs px-4 py-2 rounded-full whitespace-nowrap hover:bg-white/30 transition-colors"
                     >
                       {suggestion}
-                    </motion.button>
+                    </button>
                   ))}
                 </div>
               </div>
@@ -311,22 +289,19 @@ export default function StyleAssistant() {
                   placeholder="Ask me anything..."
                   className="flex-1 bg-white/20 backdrop-blur-sm text-white placeholder-white/50 px-3 md:px-4 py-2.5 md:py-3 text-sm md:text-base rounded-full focus:outline-none focus:ring-2 focus:ring-white/50"
                 />
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
+                <button
                   type="submit"
                   disabled={!input.trim() || isTyping}
-                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2.5 md:p-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed shadow-lg"
+                  className="bg-gradient-to-r from-pink-500 to-purple-600 text-white p-2.5 md:p-3 rounded-full disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:scale-105 transition-transform"
                 >
                   <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                   </svg>
-                </motion.button>
+                </button>
               </form>
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </>
   )
 }

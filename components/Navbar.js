@@ -1,11 +1,11 @@
 ﻿import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, memo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useCartStore, useAuthStore, useWishlistStore } from '../store/useStore'
 import SearchBar from './SearchBar'
 
-export default function Navbar() {
+function Navbar() {
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -305,4 +305,6 @@ export default function Navbar() {
     </motion.nav>
   )
 }
+
+export default memo(Navbar)
 

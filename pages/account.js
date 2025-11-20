@@ -129,11 +129,11 @@ export default function Account() {
                   <img
                     src={user?.avatar}
                     alt={user?.name}
-                    className="w-16 h-16 rounded-full"
+                    className="w-16 h-16 rounded-full flex-shrink-0"
                   />
-                  <div>
-                    <h3 className="font-semibold text-lg">{user?.name}</h3>
-                    <p className="text-sm text-gray-600">{user?.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-lg truncate">{user?.name}</h3>
+                    <p className="text-sm text-gray-600 break-words">{user?.email}</p>
                   </div>
                 </div>
 

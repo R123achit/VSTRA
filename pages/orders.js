@@ -1,89 +1,74 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useAuthStore } from '../store/useStore'
+import { useRouter } from 'next/router'
+import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import CancelOrder from '../components/CancelOrder'
 
 export default function Orders() {
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [loading, setLoading] = useState(true)
+  const [orders, setOrders] = useState([])
 
-  // Mock orders data
-  const [orders, setOrders] = useState([
-    {
-      id: 'VSTRA-12345',
-      date: '2024-11-15',
-      status: 'Delivered',
-      total: 24999,
-      items: [
-        { 
-          name: 'Premium Cotton T-Shirt', 
-          size: 'M', 
-          color: 'Black', 
-          qty: 2, 
-          price: 4199,
-          image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80'
-        },
-        { 
-          name: 'Slim Fit Jeans', 
-          size: '32', 
-          color: 'Blue', 
-          qty: 1, 
-          price: 7499,
-          image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80'
-        }
-      ],
-      canCancel: false,
-      canReturn: true
-    },
-    {
-      id: 'VSTRA-12346',
-      date: '2024-11-18',
-      status: 'Shipped',
-      total: 13299,
-      items: [
-        { 
-          name: 'Casual Hoodie', 
-          size: 'L', 
-          color: 'Gray', 
-          qty: 1, 
-          price: 6699,
-          image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400&q=80'
-        },
-        { 
-          name: 'Sports Cap', 
-          size: 'One Size', 
-          color: 'Black', 
-          qty: 1, 
-          price: 2499,
-          image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400&q=80'
-        }
-      ],
-      canCancel: false,
-      canReturn: false,
-      trackingNumber: 'TRK123456789'
-    },
-    {
-      id: 'VSTRA-12347',
-      date: '2024-11-20',
-      status: 'Processing',
-      total: 16699,
-      items: [
-        { 
-          name: 'Leather Jacket', 
-          size: 'L', 
-          color: 'Brown', 
-          qty: 1, 
-          price: 16699,
-          image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=400&q=80'
-        }
-      ],
-      canCancel: true,
-      canReturn: false
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login')
+      return
     }
-  ])
+    fetchOrders()
+  }, [isAuthenticated, router])
+
+  const fetchOrders = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setLoading(false)
+        return
+      }
+
+      const response = await axios.get('/api/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      console.log('📦 Orders API Response:', response.data)
+      console.log('📦 Number of orders:', response.data.length)
+      
+      // Transform orders to match UI format - using REAL order data
+      const transformedOrders = response.data.map(order => ({
+        id: order._id,
+        date: order.createdAt,
+        status: order.status || 'Processing',
+        total: order.totalAmount,
+        items: order.items.map(item => ({
+          name: item.name,
+          size: item.size || 'N/A',
+          color: item.color || 'N/A',
+          qty: item.quantity,
+          price: item.price, // Real price from order
+          image: item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80'
+        })),
+        canCancel: order.status === 'Processing' || order.status === 'Pending',
+        canReturn: order.status === 'Delivered',
+        trackingNumber: order.trackingNumber
+      }))
+      
+      console.log('📦 Transformed orders:', transformedOrders)
+      setOrders(transformedOrders)
+    } catch (error) {
+      console.error('❌ Error fetching orders:', error)
+      console.error('❌ Error details:', error.response?.data || error.message)
+      setOrders([]) // Empty array if error - NO MOCK DATA
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleCancelOrder = (cancelData) => {
     setOrders(orders.map(order => 
@@ -122,7 +107,12 @@ export default function Orders() {
             <p className="text-gray-600 mb-8">View and manage your order history</p>
           </motion.div>
 
-          {orders.length === 0 ? (
+          {loading ? (
+            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading your orders...</p>
+            </div>
+          ) : orders.length === 0 ? (
             <div className="bg-white rounded-lg shadow-lg p-12 text-center">
               <p className="text-gray-600 mb-4">You haven't placed any orders yet.</p>
               <Link href="/shop">

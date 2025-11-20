@@ -1,14 +1,17 @@
 import { useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import Head from 'next/head'
 import { Toaster } from 'react-hot-toast'
 import Navbar from '../components/Navbar'
 import Hero from '../components/Hero'
 import Categories from '../components/Categories'
 import Featured from '../components/Featured'
-import Story from '../components/Story'
-import Lookbook from '../components/Lookbook'
-import Footer from '../components/Footer'
-import StyleAssistant from '../components/StyleAssistant'
+
+// Lazy load heavy components
+const Story = dynamic(() => import('../components/Story'), { ssr: false })
+const Lookbook = dynamic(() => import('../components/Lookbook'), { ssr: false })
+const Footer = dynamic(() => import('../components/Footer'), { ssr: false })
+const StyleAssistant = dynamic(() => import('../components/StyleAssistant'), { ssr: false })
 
 export default function Home() {
   useEffect(() => {

@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useMemo } from 'react'
+import { motion } from 'framer-motion'
 import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -39,10 +39,6 @@ export default function Shop() {
     fetchProducts()
   }, [category, sortBy])
 
-  useEffect(() => {
-    filterProducts()
-  }, [products, searchQuery, priceRange, selectedSizes])
-
   const fetchProducts = async () => {
     try {
       setLoading(true)
@@ -59,23 +55,22 @@ export default function Shop() {
     }
   }
 
-  const filterProducts = () => {
+  // Memoize filtered products for better performance
+  useEffect(() => {
     let filtered = [...products]
 
-    // Search filter
     if (searchQuery) {
+      const query = searchQuery.toLowerCase()
       filtered = filtered.filter(product =>
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase())
+        product.name.toLowerCase().includes(query) ||
+        product.description.toLowerCase().includes(query)
       )
     }
 
-    // Price range filter
     filtered = filtered.filter(product =>
       product.price >= priceRange[0] && product.price <= priceRange[1]
     )
 
-    // Size filter
     if (selectedSizes.length > 0) {
       filtered = filtered.filter(product =>
         product.sizes?.some(size => selectedSizes.includes(size))
@@ -83,7 +78,7 @@ export default function Shop() {
     }
 
     setFilteredProducts(filtered)
-  }
+  }, [products, searchQuery, priceRange, selectedSizes])
 
   const handleQuickAdd = (product) => {
     const defaultSize = product.sizes?.[0] || 'M'
@@ -342,25 +337,17 @@ export default function Shop() {
                   </button>
                 </div>
               ) : (
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={viewMode}
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className={viewMode === 'grid' 
-                      ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
-                      : 'space-y-6'
-                    }
-                  >
-                    {filteredProducts.map((product, index) => (
-                      <motion.div
-                        key={product._id}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: index * 0.05 }}
-                        className={viewMode === 'list' ? 'flex gap-6 bg-white p-6 shadow-lg' : 'group'}
-                      >
+                <div
+                  className={viewMode === 'grid' 
+                    ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'
+                    : 'space-y-6'
+                  }
+                >
+                  {filteredProducts.map((product, index) => (
+                    <div
+                      key={product._id}
+                      className={viewMode === 'list' ? 'flex gap-6 bg-white p-6 shadow-lg' : 'group'}
+                    >
                         <Link href={`/product/${product._id}`}>
                           <div className={`relative overflow-hidden bg-white cursor-pointer shadow-lg ${
                             viewMode === 'list' ? 'w-48 h-48 flex-shrink-0' : 'mb-4 aspect-[3/4]'
@@ -431,10 +418,9 @@ export default function Shop() {
                             {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
                           </button>
                         </div>
-                      </motion.div>
+                      </div>
                     ))}
-                  </motion.div>
-                </AnimatePresence>
+                  </div>
               )}
             </div>
           </div>

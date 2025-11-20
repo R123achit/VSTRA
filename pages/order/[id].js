@@ -1,8 +1,10 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
+import { useAuthStore } from '../../store/useStore'
+import axios from 'axios'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import CancelOrder from '../../components/CancelOrder'
@@ -10,66 +12,102 @@ import CancelOrder from '../../components/CancelOrder'
 export default function OrderDetail() {
   const router = useRouter()
   const { id } = router.query
+  const { isAuthenticated } = useAuthStore()
   const [showCancelModal, setShowCancelModal] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [order, setOrder] = useState(null)
 
-  // Mock order data - in real app, fetch based on id
-  const order = {
-    id: id || 'VSTRA-12345',
-    date: '2024-11-15',
-    status: 'Delivered',
-    total: 24999,
-    subtotal: 21697,
-    shipping: 1250,
-    tax: 2084,
-    items: [
-      { 
-        id: 1,
-        name: 'Premium Cotton T-Shirt', 
-        size: 'M', 
-        color: 'Black', 
-        qty: 2, 
-        price: 4199,
-        image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400&q=80'
-      },
-      { 
-        id: 2,
-        name: 'Slim Fit Jeans', 
-        size: '32', 
-        color: 'Blue', 
-        qty: 1, 
-        price: 7499,
-        image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=400&q=80'
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+    if (id) {
+      fetchOrderDetails()
+    }
+  }, [id, isAuthenticated, router])
+
+  const fetchOrderDetails = async () => {
+    try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        setLoading(false)
+        return
       }
-    ],
-    shippingAddress: {
-      name: 'John Doe',
-      street: '123 Fashion Street',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'United States'
-    },
-    billingAddress: {
-      name: 'John Doe',
-      street: '123 Fashion Street',
-      city: 'New York',
-      state: 'NY',
-      zip: '10001',
-      country: 'United States'
-    },
-    paymentMethod: 'Visa ending in 4242',
-    trackingNumber: 'TRK123456789',
-    estimatedDelivery: '2024-11-20',
-    canCancel: false,
-    canReturn: true,
-    timeline: [
-      { status: 'Order Placed', date: '2024-11-15 10:30 AM', completed: true },
-      { status: 'Payment Confirmed', date: '2024-11-15 10:31 AM', completed: true },
-      { status: 'Processing', date: '2024-11-15 02:00 PM', completed: true },
-      { status: 'Shipped', date: '2024-11-16 09:00 AM', completed: true },
-      { status: 'Out for Delivery', date: '2024-11-18 08:00 AM', completed: true },
-      { status: 'Delivered', date: '2024-11-18 03:45 PM', completed: true }
+
+      const response = await axios.get(`/api/orders/${id}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      const orderData = response.data
+      
+      // Transform REAL order data to match UI format
+      const transformedOrder = {
+        id: orderData._id,
+        date: orderData.createdAt,
+        status: orderData.status || 'Processing',
+        total: orderData.totalAmount,
+        subtotal: orderData.items.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        shipping: orderData.shippingCost || 0,
+        tax: orderData.tax || 0,
+        items: orderData.items.map(item => ({
+          id: item._id,
+          name: item.name,
+          size: item.size || 'N/A',
+          color: item.color || 'N/A',
+          qty: item.quantity,
+          price: item.price, // Real price from actual order
+          image: item.image || 'https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=400&q=80'
+        })),
+        shippingAddress: orderData.shippingAddress || {
+          name: 'N/A',
+          street: 'N/A',
+          city: 'N/A',
+          state: 'N/A',
+          zip: 'N/A',
+          country: 'India'
+        },
+        billingAddress: orderData.billingAddress || orderData.shippingAddress || {
+          name: 'N/A',
+          street: 'N/A',
+          city: 'N/A',
+          state: 'N/A',
+          zip: 'N/A',
+          country: 'India'
+        },
+        paymentMethod: orderData.paymentMethod || 'N/A',
+        trackingNumber: orderData.trackingNumber,
+        estimatedDelivery: orderData.estimatedDelivery,
+        canCancel: orderData.status === 'Processing' || orderData.status === 'Pending',
+        canReturn: orderData.status === 'Delivered',
+        timeline: generateTimeline(orderData)
+      }
+      
+      setOrder(transformedOrder)
+    } catch (error) {
+      console.error('Error fetching order details:', error)
+      setOrder(null) // Set to null if error - NO MOCK DATA
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const generateTimeline = (orderData) => {
+    const timeline = [
+      { status: 'Order Placed', date: new Date(orderData.createdAt).toLocaleString(), completed: true }
     ]
+    
+    if (orderData.status !== 'Cancelled') {
+      timeline.push({ status: 'Payment Confirmed', date: new Date(orderData.createdAt).toLocaleString(), completed: true })
+      timeline.push({ status: 'Processing', date: '', completed: orderData.status !== 'Pending' })
+      timeline.push({ status: 'Shipped', date: '', completed: orderData.status === 'Shipped' || orderData.status === 'Delivered' })
+      timeline.push({ status: 'Out for Delivery', date: '', completed: orderData.status === 'Delivered' })
+      timeline.push({ status: 'Delivered', date: '', completed: orderData.status === 'Delivered' })
+    } else {
+      timeline.push({ status: 'Cancelled', date: new Date(orderData.updatedAt).toLocaleString(), completed: true })
+    }
+    
+    return timeline
   }
 
   const getStatusColor = (status) => {
@@ -84,6 +122,40 @@ export default function OrderDetail() {
 
   const handleCancelOrder = (cancelData) => {
     router.push('/orders')
+  }
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading order details...</p>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
+  }
+
+  if (!order) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen bg-gray-50 pt-20 flex items-center justify-center">
+          <div className="text-center">
+            <p className="text-gray-600 mb-4">Order not found</p>
+            <Link href="/orders">
+              <button className="bg-black text-white px-6 py-3 rounded-lg">
+                Back to Orders
+              </button>
+            </Link>
+          </div>
+        </div>
+        <Footer />
+      </>
+    )
   }
 
   return (
