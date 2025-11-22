@@ -78,16 +78,17 @@ export default function SearchBar({ scrolled }) {
   return (
     <div ref={searchRef} className="relative">
       <form onSubmit={handleSubmit} className="relative">
-        <input
+        <motion.input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
+          whileFocus={{ scale: 1.02 }}
           placeholder="Search products..."
-          className={`w-64 px-4 py-2 pl-10 text-sm rounded-full transition-all focus:outline-none focus:ring-2 ${
+          className={`w-64 px-4 py-2.5 pl-10 text-sm rounded-full transition-all duration-300 focus:outline-none border-2 ${
             scrolled
-              ? 'bg-gray-100 text-black placeholder-gray-500 focus:ring-black'
-              : 'bg-white/10 text-white placeholder-white/60 focus:ring-white'
+              ? 'bg-gray-100 text-black placeholder-gray-500 border-gray-200 focus:border-black focus:bg-white hover:border-gray-400'
+              : 'bg-white/10 backdrop-blur-sm text-white placeholder-white/50 border-white/20 focus:border-white focus:bg-white/20 hover:border-white/40'
           }`}
         />
         <svg

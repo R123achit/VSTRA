@@ -9,9 +9,16 @@ export default async function handler(req, res) {
   const { reviewId } = query
 
   try {
-    const decoded = verifyToken(req)
-    if (!decoded) {
-      return res.status(401).json({ message: 'Unauthorized' })
+    // Try to verify token, but allow anonymous votes
+    let userId = null
+    try {
+      const decoded = verifyToken(req)
+      if (decoded && decoded.userId) {
+        userId = decoded.userId
+      }
+    } catch (authError) {
+      // Continue without authentication - allow anonymous votes
+      console.log('Anonymous vote')
     }
 
     switch (method) {
@@ -28,45 +35,57 @@ export default async function handler(req, res) {
             return res.status(404).json({ message: 'Review not found' })
           }
 
-          // Check if user already voted
-          const existingVote = review.helpfulVotes.find(
-            (v) => v.user.toString() === decoded.userId
-          )
+          // Only check for existing vote if user is authenticated
+          if (userId) {
+            const existingVote = review.helpfulVotes.find(
+              (v) => v.user && v.user.toString() === userId
+            )
 
-          if (existingVote) {
-            // Update existing vote
-            if (existingVote.vote === 'helpful') {
-              review.helpful -= 1
+            if (existingVote) {
+              // Update existing vote
+              if (existingVote.vote === 'helpful') {
+                review.helpful -= 1
+              } else {
+                review.notHelpful -= 1
+              }
+
+              if (vote === 'helpful') {
+                review.helpful += 1
+              } else {
+                review.notHelpful += 1
+              }
+
+              existingVote.vote = vote
             } else {
-              review.notHelpful -= 1
-            }
+              // Add new vote
+              if (vote === 'helpful') {
+                review.helpful += 1
+              } else {
+                review.notHelpful += 1
+              }
 
-            if (vote === 'helpful') {
-              review.helpful += 1
-            } else {
-              review.notHelpful += 1
+              review.helpfulVotes.push({
+                user: userId,
+                vote,
+              })
             }
-
-            existingVote.vote = vote
           } else {
-            // Add new vote
+            // Anonymous vote - just increment counter
             if (vote === 'helpful') {
               review.helpful += 1
             } else {
               review.notHelpful += 1
             }
-
-            review.helpfulVotes.push({
-              user: decoded.userId,
-              vote,
-            })
           }
 
           await review.save()
-          await review.populate('user', 'name avatar')
+          if (review.user) {
+            await review.populate('user', 'name avatar')
+          }
 
           res.status(200).json({ review })
         } catch (error) {
+          console.error('Vote error:', error)
           res.status(500).json({ message: 'Failed to vote', error: error.message })
         }
         break

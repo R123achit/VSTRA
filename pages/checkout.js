@@ -5,6 +5,8 @@ import Script from 'next/script'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import ActiveOffersBar from '../components/ActiveOffersBar'
+import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useCartStore, useAuthStore } from '../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -12,6 +14,7 @@ import confetti from 'canvas-confetti'
 
 export default function Checkout() {
   const router = useRouter()
+  const offersBarVisible = useOffersBarVisible()
   const { items, getCartTotal, clearCart } = useCartStore()
   const { isAuthenticated, token, user } = useAuthStore()
   const [loading, setLoading] = useState(false)
@@ -260,9 +263,13 @@ export default function Checkout() {
         onError={() => toast.error('Failed to load payment system')}
       />
       <Toaster position="top-center" />
+      <ActiveOffersBar />
       <Navbar />
 
-      <main className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
+      <main 
+        className="pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12 transition-all duration-300" 
+        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+      >
         <div className="max-w-7xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}
@@ -286,7 +293,7 @@ export default function Checkout() {
                       required
                       value={formData.fullName}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="tel"
@@ -295,7 +302,7 @@ export default function Checkout() {
                       required
                       value={formData.phone}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -304,7 +311,7 @@ export default function Checkout() {
                       required
                       value={formData.addressLine1}
                       onChange={handleChange}
-                      className="md:col-span-2 px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="md:col-span-2 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -312,7 +319,7 @@ export default function Checkout() {
                       placeholder="Address Line 2"
                       value={formData.addressLine2}
                       onChange={handleChange}
-                      className="md:col-span-2 px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="md:col-span-2 px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -321,7 +328,7 @@ export default function Checkout() {
                       required
                       value={formData.city}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -330,7 +337,7 @@ export default function Checkout() {
                       required
                       value={formData.state}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -339,7 +346,7 @@ export default function Checkout() {
                       required
                       value={formData.zipCode}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                     <input
                       type="text"
@@ -348,7 +355,7 @@ export default function Checkout() {
                       required
                       value={formData.country}
                       onChange={handleChange}
-                      className="px-4 py-3 border border-gray-300 focus:outline-none focus:border-black"
+                      className="px-4 py-3 border-2 border-gray-300 rounded-lg focus:outline-none focus:border-black focus:ring-2 focus:ring-black/10 hover:border-gray-400 transition-all duration-300 placeholder-gray-400"
                     />
                   </div>
                 </div>

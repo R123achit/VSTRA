@@ -4,11 +4,14 @@ import Head from 'next/head'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import ActiveOffersBar from '../components/ActiveOffersBar'
+import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useAuthStore } from '../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 
 export default function Account() {
   const router = useRouter()
+  const offersBarVisible = useOffersBarVisible()
   const { isAuthenticated, user, updateUser } = useAuthStore()
   const [activeTab, setActiveTab] = useState('profile')
   const [loading, setLoading] = useState(false)
@@ -105,9 +108,13 @@ export default function Account() {
         <title>My Account - VSTRA</title>
       </Head>
       <Toaster position="top-center" />
+      <ActiveOffersBar />
       <Navbar />
 
-      <main className="pt-32 pb-20 px-6 lg:px-12 min-h-screen bg-vstra-light">
+      <main 
+        className="pb-20 px-6 lg:px-12 min-h-screen bg-vstra-light transition-all duration-300" 
+        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+      >
         <div className="max-w-7xl mx-auto">
           <motion.h1
             initial={{ opacity: 0, y: 20 }}

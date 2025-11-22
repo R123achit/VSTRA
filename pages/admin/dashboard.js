@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAuthStore } from '../../store/useStore'
+import AdminNavbar from '../../components/AdminNavbar'
 import axios from 'axios'
 
 export default function AdminDashboard() {
@@ -57,48 +58,10 @@ export default function AdminDashboard() {
       </Head>
 
       <div className="min-h-screen bg-gray-50">
-        {/* Admin Navbar */}
-        <nav className="bg-black text-white shadow-lg">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <h1 className="text-2xl font-bold">VSTRA Admin</h1>
-                <div className="hidden md:flex gap-6">
-                  <Link href="/admin/dashboard">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Dashboard</span>
-                  </Link>
-                  <Link href="/admin/products">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Products</span>
-                  </Link>
-                  <Link href="/admin/orders">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Orders</span>
-                  </Link>
-                  <Link href="/admin/users">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Users</span>
-                  </Link>
-                </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <Link href="/">
-                  <button className="text-sm bg-white text-black px-4 py-2 hover:bg-gray-200 transition-colors">
-                    View Site
-                  </button>
-                </Link>
-                <Link href="/admin/profile">
-                  <div className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-lg hover:bg-white/20 transition-colors cursor-pointer">
-                    <div className="w-8 h-8 bg-gradient-to-br from-slate-700 to-slate-900 rounded-full flex items-center justify-center text-white font-bold text-sm ring-2 ring-slate-600/50">
-                      {user?.name?.charAt(0).toUpperCase()}
-                    </div>
-                    <span className="text-sm font-medium">{user?.name}</span>
-                  </div>
-                </Link>
-              </div>
-            </div>
-          </div>
-        </nav>
+        <AdminNavbar />
 
         {/* Main Content */}
-        <main className="max-w-7xl mx-auto px-6 py-12">
+        <main className="max-w-7xl mx-auto px-6 py-12 pt-32">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -131,6 +94,21 @@ export default function AdminDashboard() {
             <div className="bg-white p-8 shadow-lg mb-12">
               <h3 className="text-2xl font-bold mb-6">Quick Actions</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <Link href="/admin/offers">
+                  <motion.div
+                    whileHover={{ scale: 1.02, y: -2 }}
+                    className="p-6 border-2 border-[#D4AF37] hover:border-[#B8941F] cursor-pointer transition-all bg-gradient-to-br from-[#D4AF37]/10 to-[#FFD700]/5 shadow-md hover:shadow-xl"
+                  >
+                    <div className="text-4xl mb-3">🎁</div>
+                    <h4 className="font-bold mb-2 text-lg">Manage Offers</h4>
+                    <p className="text-sm text-gray-600 mb-2">Create & manage promotional offers</p>
+                    <div className="flex gap-2 flex-wrap mt-3">
+                      <span className="text-xs bg-[#D4AF37]/20 text-[#B8941F] px-2 py-1 rounded-full font-semibold">BOGO</span>
+                      <span className="text-xs bg-[#D4AF37]/20 text-[#B8941F] px-2 py-1 rounded-full font-semibold">Coupons</span>
+                      <span className="text-xs bg-[#D4AF37]/20 text-[#B8941F] px-2 py-1 rounded-full font-semibold">Discounts</span>
+                    </div>
+                  </motion.div>
+                </Link>
                 <Link href="/admin/add-product">
                   <div className="p-6 border-2 border-gray-200 hover:border-black cursor-pointer transition-colors">
                     <div className="text-3xl mb-3">➕</div>

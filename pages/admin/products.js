@@ -4,6 +4,7 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
 import { useAuthStore } from '../../store/useStore'
+import AdminNavbar from '../../components/AdminNavbar'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 
@@ -66,39 +67,9 @@ export default function AdminProducts() {
       <Toaster position="top-center" />
 
       <div className="min-h-screen bg-gray-50">
-        {/* Admin Navbar */}
-        <nav className="bg-black text-white shadow-lg">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <Link href="/admin/dashboard">
-                  <h1 className="text-2xl font-bold cursor-pointer">VSTRA Admin</h1>
-                </Link>
-                <div className="hidden md:flex gap-6">
-                  <Link href="/admin/dashboard">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Dashboard</span>
-                  </Link>
-                  <Link href="/admin/products">
-                    <span className="text-sm text-gray-300 border-b-2 border-white cursor-pointer">Products</span>
-                  </Link>
-                  <Link href="/admin/orders">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Orders</span>
-                  </Link>
-                  <Link href="/admin/users">
-                    <span className="text-sm hover:text-gray-300 cursor-pointer">Users</span>
-                  </Link>
-                </div>
-              </div>
-              <Link href="/">
-                <button className="text-sm bg-white text-black px-4 py-2 hover:bg-gray-200">
-                  View Site
-                </button>
-              </Link>
-            </div>
-          </div>
-        </nav>
+        <AdminNavbar />
 
-        <main className="max-w-7xl mx-auto px-6 py-12">
+        <main className="max-w-7xl mx-auto px-6 py-12 pt-32">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <h2 className="text-4xl font-bold">Manage Products</h2>
             <Link href="/admin/add-product">

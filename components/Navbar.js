@@ -1,4 +1,4 @@
-﻿import { motion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useState, useEffect, memo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/router'
@@ -8,8 +8,10 @@ import SearchBar from './SearchBar'
 function Navbar() {
   const router = useRouter()
   const [scrolled, setScrolled] = useState(false)
+  const [scrollOpacity, setScrollOpacity] = useState(0.95)
   const [mounted, setMounted] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [offersBarVisible, setOffersBarVisible] = useState(true)
   const cartCount = useCartStore((state) => state.getCartCount())
   const wishlistCount = useWishlistStore((state) => state.getWishlistCount())
   const { isAuthenticated, user, logout } = useAuthStore()
@@ -20,10 +22,24 @@ function Navbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50)
+      const scrollY = window.scrollY
+      setScrolled(scrollY > 50)
+      
+      // Calculate opacity: starts at 0.95, reaches 1 at 200px scroll
+      const opacity = Math.min(0.95 + (scrollY / 200) * 0.05, 1)
+      setScrollOpacity(opacity)
     }
+    handleScroll() // Set initial opacity
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  useEffect(() => {
+    const handleOffersBarVisibility = (e) => {
+      setOffersBarVisible(e.detail.visible)
+    }
+    window.addEventListener('offersBarVisibility', handleOffersBarVisibility)
+    return () => window.removeEventListener('offersBarVisibility', handleOffersBarVisibility)
   }, [])
 
   const handleLogout = () => {
@@ -34,10 +50,16 @@ function Navbar() {
   return (
     <motion.nav
       initial={{ y: -100 }}
-      animate={{ y: 0 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        scrolled ? 'bg-white/95 backdrop-blur-xl shadow-sm text-black' : 'bg-black/20 backdrop-blur-sm text-white'
+      animate={{ y: 0, top: offersBarVisible ? '3rem' : '0rem' }}
+      transition={{ duration: 0.3, ease: 'easeOut' }}
+      style={{ 
+        backgroundColor: `rgba(255, 255, 255, ${scrollOpacity})`,
+        backdropFilter: scrollOpacity < 1 ? 'blur(10px)' : 'none'
+      }}
+      className={`fixed left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
+        scrolled 
+          ? 'shadow-lg text-black' 
+          : 'text-black shadow-md'
       }`}
     >
       <div className="max-w-7xl mx-auto px-6 lg:px-12">
@@ -53,64 +75,66 @@ function Navbar() {
           </Link>
 
           {/* Navigation Links - Desktop */}
-          <div className="hidden md:flex items-center space-x-10">
-            <Link href="/shop?category=men">
+          <nav className="hidden md:flex items-center gap-8 lg:gap-12" role="navigation" aria-label="Main navigation">
+            <Link href="/shop?category=men" className="relative group">
               <motion.span
-                whileHover={{ y: -2 }}
-                className={`text-sm font-medium tracking-wide transition-colors cursor-pointer inline-block ${
-                  scrolled ? 'hover:text-gray-600' : 'hover:text-gray-300'
-                }`}
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-sm font-semibold tracking-wider uppercase cursor-pointer inline-block px-3 py-2 transition-all duration-300 text-black hover:text-gray-600"
               >
                 Men
               </motion.span>
+              <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link href="/shop?category=women">
+            <Link href="/shop?category=women" className="relative group">
               <motion.span
-                whileHover={{ y: -2 }}
-                className={`text-sm font-medium tracking-wide transition-colors cursor-pointer inline-block ${
-                  scrolled ? 'hover:text-gray-600' : 'hover:text-gray-300'
-                }`}
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-sm font-semibold tracking-wider uppercase cursor-pointer inline-block px-3 py-2 transition-all duration-300 text-black hover:text-gray-600"
               >
                 Women
               </motion.span>
+              <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link href="/shop?category=new-arrivals">
+            <Link href="/shop?category=new-arrivals" className="relative group">
               <motion.span
-                whileHover={{ y: -2 }}
-                className={`text-sm font-medium tracking-wide transition-colors cursor-pointer inline-block ${
-                  scrolled ? 'hover:text-gray-600' : 'hover:text-gray-300'
-                }`}
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-sm font-semibold tracking-wider uppercase cursor-pointer inline-block px-3 py-2 transition-all duration-300 text-black hover:text-gray-600"
               >
                 New Arrivals
               </motion.span>
+              <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full" />
             </Link>
-            <Link href="/shop?category=accessories">
+            <Link href="/shop?category=accessories" className="relative group">
               <motion.span
-                whileHover={{ y: -2 }}
-                className={`text-sm font-medium tracking-wide transition-colors cursor-pointer inline-block ${
-                  scrolled ? 'hover:text-gray-600' : 'hover:text-gray-300'
-                }`}
+                whileHover={{ y: -3, scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="text-sm font-semibold tracking-wider uppercase cursor-pointer inline-block px-3 py-2 transition-all duration-300 text-black hover:text-gray-600"
               >
                 Accessories
               </motion.span>
+              <span className="absolute bottom-0 left-0 h-0.5 w-0 bg-black transition-all duration-300 group-hover:w-full" />
             </Link>
-          </div>
+          </nav>
 
           {/* Right Side */}
-          <div className="flex items-center space-x-4 sm:space-x-6">
-            {/* Search */}
+          <div className="flex items-center gap-2">
+            {/* Search - Always Visible */}
             <div className="hidden lg:block">
-              <SearchBar scrolled={scrolled} />
+              <SearchBar scrolled={true} />
             </div>
 
             {/* Wishlist */}
             {mounted && (
               <Link href="/wishlist">
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="relative cursor-pointer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors ml-6"
+                  aria-label="Wishlist"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
@@ -119,11 +143,13 @@ function Navbar() {
                     />
                   </svg>
                   {wishlistCount > 0 && (
-                    <span className={`absolute -top-2 -right-2 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold ${
-                      scrolled ? 'bg-red-600' : 'bg-red-600'
-                    }`}>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold bg-red-600 shadow-lg"
+                    >
                       {wishlistCount}
-                    </span>
+                    </motion.span>
                   )}
                 </motion.div>
               </Link>
@@ -133,18 +159,22 @@ function Navbar() {
             {mounted && (
               <Link href="/cart">
                 <motion.div
-                  whileHover={{ scale: 1.1 }}
-                  className="relative cursor-pointer"
+                  whileHover={{ scale: 1.15, y: -2 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="relative cursor-pointer p-2 rounded-full hover:bg-gray-100 transition-colors ml-6"
+                  aria-label="Shopping Cart"
                 >
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-6 h-6 text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                   </svg>
                   {cartCount > 0 && (
-                    <span className={`absolute -top-2 -right-2 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold ${
-                      scrolled ? 'bg-red-600' : 'bg-red-600'
-                    }`}>
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      className="absolute -top-1 -right-1 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold bg-red-600 shadow-lg"
+                    >
                       {cartCount}
-                    </span>
+                    </motion.span>
                   )}
                 </motion.div>
               </Link>
@@ -154,46 +184,66 @@ function Navbar() {
             {mounted && (
               <>
                 {isAuthenticated ? (
-                  <div className="relative group hidden md:block">
+                  <div className="relative group hidden md:block ml-2">
                     <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      className="cursor-pointer flex items-center gap-2"
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="cursor-pointer flex items-center gap-2 px-3 py-2 rounded-full hover:bg-black/5 transition-colors"
                     >
                       <img
                         src={user?.avatar}
                         alt={user?.name}
-                        className="w-8 h-8 rounded-full"
+                        className="w-9 h-9 rounded-full border-2 border-transparent group-hover:border-black/20 transition-all"
                       />
+                      <svg className="w-4 h-4 text-gray-600 group-hover:text-black transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
                     </motion.div>
-                    <div className="absolute right-0 mt-2 w-48 bg-white shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all">
-                      <Link href="/account">
-                        <span className="block px-4 py-2 text-sm text-black hover:bg-gray-100 cursor-pointer">
-                          My Account
-                        </span>
-                      </Link>
-                      <Link href="/orders">
-                        <span className="block px-4 py-2 text-sm text-black hover:bg-gray-100 cursor-pointer">
-                          My Orders
-                        </span>
-                      </Link>
-                      <button
-                        onClick={handleLogout}
-                        className="block w-full text-left px-4 py-2 text-sm text-black hover:bg-gray-100"
-                      >
-                        Logout
-                      </button>
+                    <div className="absolute right-0 mt-3 w-52 bg-white rounded-xl shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 overflow-hidden border border-gray-100 z-50"
+                    >
+                      <div className="py-2">
+                        <Link href="/account">
+                          <motion.span
+                            whileHover={{ x: 5, backgroundColor: '#f9fafb' }}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-black cursor-pointer transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            My Account
+                          </motion.span>
+                        </Link>
+                        <Link href="/orders">
+                          <motion.span
+                            whileHover={{ x: 5, backgroundColor: '#f9fafb' }}
+                            className="flex items-center gap-3 px-4 py-3 text-sm text-black cursor-pointer transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                            My Orders
+                          </motion.span>
+                        </Link>
+                        <div className="border-t border-gray-100 my-1" />
+                        <motion.button
+                          onClick={handleLogout}
+                          whileHover={{ x: 5, backgroundColor: '#fef2f2' }}
+                          className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 hover:text-red-700 transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                          </svg>
+                          Logout
+                        </motion.button>
+                      </div>
                     </div>
                   </div>
                 ) : (
                   <Link href="/auth/login">
                     <motion.button
-                      whileHover={{ scale: 1.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`hidden md:block px-6 py-2.5 text-sm font-medium tracking-wide transition-colors cursor-pointer ${
-                        scrolled 
-                          ? 'bg-black text-white hover:bg-gray-900' 
-                          : 'bg-white text-black hover:bg-gray-100'
-                      }`}
+                      className="hidden md:block px-6 py-2.5 rounded-full text-sm font-semibold tracking-wider uppercase transition-all duration-300 cursor-pointer shadow-md hover:shadow-lg ml-6 bg-black text-white hover:bg-gray-800"
                     >
                       Login
                     </motion.button>
@@ -224,78 +274,94 @@ function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t border-gray-200 py-4"
+            className="md:hidden border-t border-gray-200 py-4 bg-white"
           >
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-2">
               <Link href="/shop?category=men">
-                <span
+                <motion.span
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                 >
                   Men
-                </span>
+                </motion.span>
               </Link>
               <Link href="/shop?category=women">
-                <span
+                <motion.span
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                 >
                   Women
-                </span>
+                </motion.span>
               </Link>
               <Link href="/shop?category=new-arrivals">
-                <span
+                <motion.span
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                 >
                   New Arrivals
-                </span>
+                </motion.span>
               </Link>
               <Link href="/shop?category=accessories">
-                <span
+                <motion.span
                   onClick={() => setMobileMenuOpen(false)}
-                  className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                  whileHover={{ x: 5 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                 >
                   Accessories
-                </span>
+                </motion.span>
               </Link>
               {mounted && isAuthenticated && (
                 <>
                   <Link href="/account">
-                    <span
+                    <motion.span
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                     >
                       My Account
-                    </span>
+                    </motion.span>
                   </Link>
                   <Link href="/orders">
-                    <span
+                    <motion.span
                       onClick={() => setMobileMenuOpen(false)}
-                      className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                      whileHover={{ x: 5 }}
+                      whileTap={{ scale: 0.98 }}
+                      className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                     >
                       My Orders
-                    </span>
+                    </motion.span>
                   </Link>
-                  <button
+                  <motion.button
                     onClick={() => {
                       handleLogout()
                       setMobileMenuOpen(false)
                     }}
-                    className="block w-full text-left px-4 py-2 text-sm font-medium hover:bg-gray-100"
+                    whileHover={{ x: 5 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="block w-full text-left px-4 py-3 text-sm font-semibold rounded-lg mx-2 transition-all text-red-600 hover:bg-red-50"
                   >
                     Logout
-                  </button>
+                  </motion.button>
                 </>
               )}
               {mounted && !isAuthenticated && (
                 <Link href="/auth/login">
-                  <span
+                  <motion.span
                     onClick={() => setMobileMenuOpen(false)}
-                    className="block px-4 py-2 text-sm font-medium cursor-pointer hover:bg-gray-100"
+                    whileHover={{ x: 5 }}
+                    whileTap={{ scale: 0.98 }}
+                    className="block px-4 py-3 text-sm font-semibold cursor-pointer rounded-lg mx-2 transition-all text-black hover:bg-gray-100"
                   >
                     Login
-                  </span>
+                  </motion.span>
                 </Link>
               )}
             </div>

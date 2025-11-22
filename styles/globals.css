@@ -17,6 +17,19 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+:root {
+  /* Premium Color Palette */
+  --gold-primary: #D4AF37;
+  --gold-light: #F4E4C1;
+  --gold-dark: #B8941E;
+  --navy-deep: #0A1628;
+  --navy-medium: #1A2B47;
+  --charcoal: #2C2C2C;
+  --silver: #C0C0C0;
+  --cream: #F5F5F0;
+  --bronze: #CD7F32;
+}
+
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   background: #ffffff;
@@ -71,7 +84,11 @@ html.lenis {
   
   /* Glow effect */
   .glow {
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.5);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.5);
+  }
+  
+  .glow-gold {
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
   }
   
   /* Perspective for 3D effects */
@@ -99,6 +116,65 @@ html.lenis {
     will-change: transform;
     transform: translateZ(0);
     backface-visibility: hidden;
+  }
+
+  /* 3D Card Effects */
+  .card-3d {
+    transform-style: preserve-3d;
+    perspective: 1000px;
+  }
+
+  .card-3d-inner {
+    transform-style: preserve-3d;
+    transition: transform 0.3s ease-out;
+  }
+
+  .card-3d:hover .card-3d-inner {
+    transform: translateZ(50px);
+  }
+
+  /* Layered 3D elements */
+  .layer-1 {
+    transform: translateZ(20px);
+  }
+
+  .layer-2 {
+    transform: translateZ(40px);
+  }
+
+  .layer-3 {
+    transform: translateZ(60px);
+  }
+
+  .layer-4 {
+    transform: translateZ(80px);
+  }
+
+  /* Holographic effect */
+  @keyframes holographic {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
+    }
+  }
+
+  .holographic {
+    background: linear-gradient(
+      45deg,
+      #D4AF37,
+      #F4E4C1,
+      #CD7F32,
+      #D4AF37
+    );
+    background-size: 300% 300%;
+    animation: holographic 3s ease infinite;
+  }
+  
+  /* Premium gradient */
+  .gradient-premium {
+    background: linear-gradient(135deg, #D4AF37 0%, #CD7F32 50%, #B8941E 100%);
   }
   
   /* Locomotive Scroll Customization */

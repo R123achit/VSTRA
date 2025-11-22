@@ -14,37 +14,56 @@ const categories = [
     image: 'https://images.unsplash.com/photo-1617127365659-c47fa864d8bc?w=800&q=80',
     description: 'Refined masculinity',
     link: '/shop?category=men',
-    color: 'from-blue-600/20 to-purple-600/20'
+    color: 'from-[#0A1628]/30 to-[#D4AF37]/20'
   },
   {
     title: 'Women',
     image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80',
     description: 'Elegant sophistication',
     link: '/shop?category=women',
-    color: 'from-pink-600/20 to-rose-600/20'
+    color: 'from-[#CD7F32]/20 to-[#F4E4C1]/20'
   },
   {
     title: 'New Arrivals',
     image: 'https://images.unsplash.com/photo-1558769132-cb1aea3c8565?w=800&q=80',
     description: 'Latest collections',
     link: '/shop?category=new-arrivals',
-    color: 'from-purple-600/20 to-indigo-600/20'
+    color: 'from-[#D4AF37]/25 to-[#B8941E]/20'
   },
   {
     title: 'Accessories',
     image: 'https://images.unsplash.com/photo-1523779917675-b6ed3a42a561?w=800&q=80',
     description: 'Complete your look',
     link: '/shop?category=accessories',
-    color: 'from-amber-600/20 to-orange-600/20'
+    color: 'from-[#C0C0C0]/20 to-[#2C2C2C]/25'
   }
 ]
 
 function CategoryCard({ category, index }) {
   const cardRef = useRef(null)
   const [isHovered, setIsHovered] = useState(false)
+  const [rotateX, setRotateX] = useState(0)
+  const [rotateY, setRotateY] = useState(0)
+
+  const handleMouseMove = (e) => {
+    if (!cardRef.current) return
+    const card = cardRef.current
+    const rect = card.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    const centerX = rect.width / 2
+    const centerY = rect.height / 2
+    const rotateXValue = ((y - centerY) / centerY) * -12
+    const rotateYValue = ((x - centerX) / centerX) * 12
+    
+    setRotateX(rotateXValue)
+    setRotateY(rotateYValue)
+  }
 
   const handleMouseLeave = () => {
     setIsHovered(false)
+    setRotateX(0)
+    setRotateY(0)
   }
 
   return (
@@ -55,108 +74,184 @@ function CategoryCard({ category, index }) {
         whileInView={{ opacity: 1, y: 0 }}
         viewport={{ once: true }}
         transition={{ delay: index * 0.1, duration: 0.6 }}
+        onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={handleMouseLeave}
-        whileHover={{ y: -8 }}
-        className="group relative h-[500px] overflow-hidden bg-black cursor-pointer shadow-2xl"
+        style={{
+          transformStyle: 'preserve-3d',
+          perspective: '1000px',
+        }}
+        className="group relative h-[500px] overflow-hidden bg-black cursor-pointer"
       >
-        {/* Simplified Gradient Overlay */}
-        <div className={`absolute inset-0 bg-gradient-to-br ${category.color} opacity-0 group-hover:opacity-100 transition-opacity duration-500 z-10`} />
-
-        {/* Image */}
-        <div className="absolute inset-0 overflow-hidden">
-          <motion.div
-            className="w-full h-full bg-cover bg-center"
-            style={{ 
-              backgroundImage: `url('${category.image}')`,
-              scale: isHovered ? 1.15 : 1
-            }}
-            transition={{ duration: 0.7 }}
+        <motion.div
+          animate={{
+            rotateX: rotateX,
+            rotateY: rotateY,
+            scale: isHovered ? 1.02 : 1,
+          }}
+          transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+          style={{
+            transformStyle: 'preserve-3d',
+            boxShadow: isHovered 
+              ? '0 30px 60px -12px rgba(0, 0, 0, 0.8), 0 0 50px rgba(212, 175, 55, 0.6)' 
+              : '0 20px 40px -10px rgba(0, 0, 0, 0.5)',
+            transition: 'box-shadow 0.3s ease',
+          }}
+          className="h-full rounded-xl overflow-hidden"
+        >
+          {/* 3D Gradient Overlay */}
+          <motion.div 
+            className={`absolute inset-0 bg-gradient-to-br ${category.color} z-10`}
+            animate={{ opacity: isHovered ? 1 : 0 }}
+            transition={{ duration: 0.5 }}
+            style={{ transform: 'translateZ(30px)' }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent group-hover:from-black/90 transition-all duration-500" />
-        </div>
 
-        {/* Removed shine effect for performance */}
-
-        {/* Reduced particles for performance */}
-        {isHovered && (
-          <div className="absolute inset-0 z-20 hidden md:block">
-            {[...Array(5)].map((_, i) => (
-              <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-white rounded-full"
-                initial={{
-                  x: '50%',
-                  y: '50%',
-                  opacity: 0
-                }}
-                animate={{
-                  x: `${Math.random() * 100}%`,
-                  y: `${Math.random() * 100}%`,
-                  opacity: [0, 1, 0]
-                }}
-                transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  delay: i * 0.4
-                }}
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Content */}
-        <div className="relative z-30 h-full flex flex-col justify-end p-8 text-white">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            <motion.h3 
-              className="text-4xl font-bold tracking-tight mb-2"
-              animate={isHovered ? {
-                textShadow: [
-                  '0 0 20px rgba(255,255,255,0.5)',
-                  '0 0 40px rgba(255,255,255,0.8)',
-                  '0 0 20px rgba(255,255,255,0.5)'
-                ]
-              } : {}}
-              transition={{ duration: 1.5, repeat: Infinity }}
-            >
-              {category.title}
-            </motion.h3>
-            <p className="text-sm tracking-wider text-gray-200 mb-4 opacity-0 group-hover:opacity-100 transition-opacity duration-500">
-              {category.description}
-            </p>
-            
-            {/* Animated Line */}
+          {/* Image with 3D depth */}
+          <div className="absolute inset-0 overflow-hidden">
+            <motion.div
+              className="w-full h-full bg-cover bg-center"
+              style={{ 
+                backgroundImage: `url('${category.image}')`,
+                transform: 'translateZ(10px)',
+              }}
+              animate={{
+                scale: isHovered ? 1.15 : 1,
+              }}
+              transition={{ duration: 0.7 }}
+            />
             <motion.div 
-              className="h-0.5 bg-white"
-              initial={{ width: 0 }}
-              whileInView={{ width: isHovered ? 64 : 0 }}
+              className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"
+              animate={{
+                background: isHovered 
+                  ? 'linear-gradient(to top, rgba(0,0,0,0.9), rgba(0,0,0,0.5), transparent)'
+                  : 'linear-gradient(to top, rgba(0,0,0,0.7), rgba(0,0,0,0.5), transparent)',
+              }}
               transition={{ duration: 0.5 }}
             />
+          </div>
 
-            {/* Arrow Icon */}
+          {/* 3D Shine effect */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent z-20"
+            animate={{
+              x: isHovered ? ['0%', '100%'] : '-100%',
+            }}
+            transition={{ duration: 0.8 }}
+            style={{ transform: 'translateZ(70px)' }}
+          />
+
+          {/* 3D Particles */}
+          {isHovered && (
+            <div className="absolute inset-0 z-20 hidden md:block" style={{ transform: 'translateZ(60px)' }}>
+              {[...Array(8)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  className="absolute w-2 h-2 rounded-full"
+                  style={{
+                    left: `${20 + i * 10}%`,
+                    top: `${30 + (i % 3) * 20}%`,
+                    background: 'linear-gradient(135deg, #D4AF37, #F4E4C1)',
+                  }}
+                  animate={{
+                    y: [0, -30, 0],
+                    opacity: [0, 1, 0],
+                    scale: [0, 1.5, 0],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Content with 3D layering */}
+          <div 
+            className="relative z-30 h-full flex flex-col justify-end p-8 text-white"
+            style={{ transform: 'translateZ(80px)' }}
+          >
             <motion.div
-              className="mt-4 opacity-0 group-hover:opacity-100"
-              initial={{ x: -20 }}
-              animate={isHovered ? { x: 0 } : { x: -20 }}
-              transition={{ duration: 0.3 }}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-              </svg>
-            </motion.div>
-          </motion.div>
-        </div>
+              <motion.h3 
+                className="text-4xl font-bold tracking-tight mb-2"
+                animate={isHovered ? {
+                  textShadow: [
+                    '0 0 20px rgba(255,255,255,0.5)',
+                    '0 0 40px rgba(255,255,255,0.8)',
+                    '0 0 20px rgba(255,255,255,0.5)'
+                  ],
+                  scale: 1.05,
+                } : { scale: 1 }}
+                transition={{ duration: 1.5, repeat: Infinity }}
+              >
+                {category.title}
+              </motion.h3>
+              <motion.p 
+                className="text-sm tracking-wider text-gray-200 mb-4"
+                animate={{ opacity: isHovered ? 1 : 0, y: isHovered ? 0 : 10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {category.description}
+              </motion.p>
+              
+              {/* Animated Line */}
+              <motion.div 
+                className="h-0.5 bg-white"
+                animate={{ width: isHovered ? 64 : 0 }}
+                transition={{ duration: 0.5 }}
+              />
 
-        {/* Border Glow */}
-        <div
-          className={`absolute inset-0 z-40 pointer-events-none transition-all duration-300 ${
-            isHovered ? 'shadow-[0_0_30px_rgba(255,255,255,0.3)_inset]' : ''
-          }`}
-        />
+              {/* Arrow Icon with 3D effect */}
+              <motion.div
+                className="mt-4"
+                animate={{ 
+                  opacity: isHovered ? 1 : 0,
+                  x: isHovered ? 0 : -20,
+                  scale: isHovered ? 1.2 : 1,
+                }}
+                transition={{ duration: 0.3 }}
+                style={{ transform: 'translateZ(100px)' }}
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                </svg>
+              </motion.div>
+            </motion.div>
+          </div>
+
+          {/* 3D Border Glow */}
+          <motion.div
+            className="absolute inset-0 z-40 pointer-events-none rounded-xl"
+            animate={{
+              boxShadow: isHovered 
+                ? 'inset 0 0 40px rgba(212, 175, 55, 0.7), inset 0 0 80px rgba(244, 228, 193, 0.3)' 
+                : 'inset 0 0 0px rgba(212, 175, 55, 0)',
+            }}
+            transition={{ duration: 0.3 }}
+            style={{ transform: 'translateZ(90px)' }}
+          />
+
+          {/* Holographic edge effect */}
+          <motion.div
+            className="absolute inset-0 z-50 pointer-events-none rounded-xl"
+            style={{
+              background: isHovered 
+                ? 'linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%)'
+                : 'transparent',
+              backgroundSize: '200% 200%',
+            }}
+            animate={isHovered ? {
+              backgroundPosition: ['0% 0%', '100% 100%'],
+            } : {}}
+            transition={{ duration: 2, repeat: Infinity }}
+          />
+        </motion.div>
       </motion.div>
     </Link>
   )
@@ -187,9 +282,9 @@ export default function Categories() {
   return (
     <section id="categories" ref={sectionRef} className="relative py-32 px-6 lg:px-12 bg-gradient-to-b from-black via-gray-900 to-black overflow-hidden">
       {/* Animated Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+      <div className="absolute inset-0 opacity-20">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#D4AF37]/30 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#CD7F32]/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto relative z-10">

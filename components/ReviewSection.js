@@ -39,52 +39,66 @@ export default function ReviewSection({ productId }) {
   const handleSubmitReview = async (e) => {
     e.preventDefault()
 
-    if (!isAuthenticated) {
-      toast.error('Please login to write a review')
-      router.push('/auth/login')
-      return
-    }
-
     if (!formData.title || !formData.comment) {
       toast.error('Please fill in all fields')
       return
     }
 
-    try {
-      await axios.post(
-        '/api/reviews',
-        {
-          productId,
-          ...formData,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      )
-      toast.success('Review submitted successfully!')
-      setShowReviewForm(false)
-      setFormData({ rating: 5, title: '', comment: '' })
-      fetchReviews()
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to submit review')
+    if (formData.title.length < 3) {
+      toast.error('Review title must be at least 3 characters')
+      return
     }
-  }
 
-  const handleVote = async (reviewId, vote) => {
-    if (!isAuthenticated) {
-      toast.error('Please login to vote')
+    if (formData.comment.length < 10) {
+      toast.error('Review comment must be at least 10 characters')
       return
     }
 
     try {
+      const config = isAuthenticated && token 
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {}
+
+      const response = await axios.post(
+        '/api/reviews',
+        {
+          productId,
+          rating: formData.rating,
+          title: formData.title.trim(),
+          comment: formData.comment.trim(),
+        },
+        config
+      )
+
+      if (response.data) {
+        toast.success('Review submitted successfully!')
+        setShowReviewForm(false)
+        setFormData({ rating: 5, title: '', comment: '' })
+        fetchReviews()
+      }
+    } catch (error) {
+      console.error('Review submission error:', error)
+      const errorMessage = error.response?.data?.message || 'Failed to submit review. Please try again.'
+      toast.error(errorMessage)
+    }
+  }
+
+  const handleVote = async (reviewId, vote) => {
+    try {
+      const config = isAuthenticated && token 
+        ? { headers: { Authorization: `Bearer ${token}` } }
+        : {}
+
       await axios.post(
         `/api/reviews/${reviewId}/vote`,
         { vote },
-        { headers: { Authorization: `Bearer ${token}` } }
+        config
       )
+      toast.success('Thank you for your feedback!')
       fetchReviews()
     } catch (error) {
-      toast.error('Failed to vote')
+      console.error('Vote error:', error)
+      toast.error(error.response?.data?.message || 'Failed to vote')
     }
   }
 
@@ -129,7 +143,7 @@ export default function ReviewSection({ productId }) {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={() => setShowReviewForm(!showReviewForm)}
-          className="px-6 py-3 bg-black text-white font-medium hover:bg-gray-900 transition-colors"
+          className="px-6 py-3 bg-[#0A1628] text-white font-medium hover:bg-[#D4AF37] hover:text-black transition-all duration-300 border border-[#D4AF37]/30"
         >
           Write a Review
         </motion.button>
@@ -147,7 +161,7 @@ export default function ReviewSection({ productId }) {
                   key={rating}
                   onClick={() => setFilter(rating === parseInt(filter) ? 'all' : rating.toString())}
                   className={`flex items-center gap-2 p-3 rounded-lg transition-colors ${
-                    filter === rating.toString() ? 'bg-black text-white' : 'bg-white hover:bg-gray-100'
+                    filter === rating.toString() ? 'bg-[#0A1628] text-white' : 'bg-white hover:bg-gray-100'
                   }`}
                 >
                   <span className="font-semibold">{rating}</span>
@@ -233,7 +247,7 @@ export default function ReviewSection({ productId }) {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="px-6 py-3 bg-black text-white font-medium hover:bg-gray-900 transition-colors"
+                  className="px-6 py-3 bg-[#0A1628] text-white font-medium hover:bg-[#D4AF37] hover:text-black transition-all duration-300 border border-[#D4AF37]/30"
                 >
                   Submit Review
                 </motion.button>
@@ -271,12 +285,12 @@ export default function ReviewSection({ productId }) {
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
                   <img
-                    src={review.user?.avatar || 'https://ui-avatars.com/api/?name=User'}
-                    alt={review.user?.name}
+                    src={review.user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(review.user?.name || review.guestName || 'Anonymous')}&background=D4AF37&color=fff`}
+                    alt={review.user?.name || 'User'}
                     className="w-12 h-12 rounded-full"
                   />
                   <div>
-                    <div className="font-semibold">{review.user?.name}</div>
+                    <div className="font-semibold">{review.user?.name || review.guestName || 'Anonymous User'}</div>
                     <div className="flex items-center gap-2 text-sm text-gray-500">
                       <span>{new Date(review.createdAt).toLocaleDateString()}</span>
                       {review.verifiedPurchase && (

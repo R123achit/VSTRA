@@ -13,9 +13,26 @@ export default async function handler(req, res) {
     switch (method) {
       case 'POST':
         try {
-          const decoded = verifyToken(req)
-          if (!decoded) {
-            return res.status(401).json({ message: 'Unauthorized' })
+          // Try to verify token, but allow anonymous reviews
+          let userId = null
+          let verifiedPurchase = false
+          
+          try {
+            const decoded = verifyToken(req)
+            if (decoded && decoded.userId) {
+              userId = decoded.userId
+              
+              // Check if user purchased this product
+              const order = await Order.findOne({
+                user: userId,
+                'items.product': req.body.productId,
+                status: 'delivered',
+              })
+              verifiedPurchase = !!order
+            }
+          } catch (authError) {
+            // Continue without authentication - allow anonymous reviews
+            console.log('Anonymous review submission')
           }
 
           const { productId, rating, title, comment, images } = req.body
@@ -33,31 +50,26 @@ export default async function handler(req, res) {
             return res.status(404).json({ message: 'Product not found' })
           }
 
-          // Check if user already reviewed this product
-          const existingReview = await Review.findOne({
-            product: productId,
-            user: decoded.userId,
-          })
+          // Only check for duplicate if user is authenticated
+          if (userId) {
+            const existingReview = await Review.findOne({
+              product: productId,
+              user: userId,
+            })
 
-          if (existingReview) {
-            return res.status(400).json({ message: 'You have already reviewed this product' })
+            if (existingReview) {
+              return res.status(400).json({ message: 'You have already reviewed this product' })
+            }
           }
-
-          // Check if user purchased this product
-          const order = await Order.findOne({
-            user: decoded.userId,
-            'items.product': productId,
-            status: 'delivered',
-          })
 
           const review = await Review.create({
             product: productId,
-            user: decoded.userId,
+            user: userId,
             rating,
             title,
             comment,
             images: images || [],
-            verifiedPurchase: !!order,
+            verifiedPurchase,
           })
 
           // Update product rating
@@ -67,10 +79,13 @@ export default async function handler(req, res) {
           product.numReviews = reviews.length
           await product.save()
 
-          await review.populate('user', 'name avatar')
+          if (userId) {
+            await review.populate('user', 'name avatar')
+          }
 
           res.status(201).json({ review })
         } catch (error) {
+          console.error('Review creation error:', error)
           res.status(500).json({ message: 'Failed to create review', error: error.message })
         }
         break

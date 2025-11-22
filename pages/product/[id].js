@@ -5,6 +5,9 @@ import Head from 'next/head'
 import Navbar from '../../components/Navbar'
 import Footer from '../../components/Footer'
 import WishlistButton from '../../components/WishlistButton'
+import CompareButton from '../../components/CompareButton'
+import ComparisonBar from '../../components/ComparisonBar'
+import ActiveOffersBar from '../../components/ActiveOffersBar'
 import ReviewSection from '../../components/ReviewSection'
 import StyleAssistant from '../../components/StyleAssistant'
 import { useCartStore } from '../../store/useStore'
@@ -89,8 +92,10 @@ export default function ProductDetail() {
         <title>{product.name} - VSTRA</title>
       </Head>
       <Toaster position="top-center" />
+      <ActiveOffersBar />
       <Navbar />
       <StyleAssistant />
+      <ComparisonBar />
 
       <main className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
         <div className="max-w-7xl mx-auto">
@@ -107,7 +112,8 @@ export default function ProductDetail() {
                   alt={product.name}
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                  <CompareButton product={product} size="lg" />
                   <WishlistButton product={product} size="lg" />
                 </div>
               </div>

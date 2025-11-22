@@ -6,12 +6,15 @@ import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import WishlistButton from '../components/WishlistButton'
+import ActiveOffersBar from '../components/ActiveOffersBar'
+import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useAuthStore, useCartStore, useWishlistStore } from '../store/useStore'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 
 export default function Wishlist() {
   const router = useRouter()
+  const offersBarVisible = useOffersBarVisible()
   const { isAuthenticated, token } = useAuthStore()
   const { addToCart } = useCartStore()
   const { items, removeFromWishlist } = useWishlistStore()
@@ -63,9 +66,13 @@ export default function Wishlist() {
         <meta name="description" content="Your saved items" />
       </Head>
 
+      <ActiveOffersBar />
       <Navbar />
 
-      <main className="min-h-screen bg-white pt-32 pb-20">
+      <main 
+        className="min-h-screen bg-white pb-20 transition-all duration-300" 
+        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+      >
         <div className="max-w-7xl mx-auto px-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-12">
