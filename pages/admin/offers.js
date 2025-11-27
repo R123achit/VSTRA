@@ -52,17 +52,27 @@ export default function AdminOffers() {
     fetchProducts()
   }, [isAuthenticated, user, router])
 
-  const fetchOffers = async () => {
+  const fetchOffers = async (retryCount = 0) => {
     try {
       setLoading(true)
       const { data } = await axios.get('/api/admin/offers', {
         headers: { Authorization: `Bearer ${token}` },
+        timeout: 10000, // 10 second timeout
       })
       console.log('Admin offers fetched:', data)
       setOffers(data.offers || [])
     } catch (error) {
       console.error('Failed to fetch offers:', error)
-      toast.error('Failed to fetch offers')
+      
+      // Retry logic for connection issues
+      if (retryCount < 2 && (error.code === 'ECONNABORTED' || error.response?.status === 503)) {
+        console.log(`Retrying... Attempt ${retryCount + 1}`)
+        setTimeout(() => fetchOffers(retryCount + 1), 1000)
+        return
+      }
+      
+      const errorMessage = error.response?.data?.message || 'Failed to fetch offers. Please refresh the page.'
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }
@@ -215,17 +225,31 @@ export default function AdminOffers() {
         <div className="max-w-7xl mx-auto p-8 pt-32">
         <div className="flex justify-between items-center mb-8">
           <h1 className="text-3xl font-bold">Offers & Promotions</h1>
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => {
-              resetForm()
-              setShowModal(true)
-            }}
-            className="px-6 py-3 bg-[#0A1628] text-white rounded-lg hover:bg-[#D4AF37] hover:text-black transition-all duration-300"
-          >
-            Create New Offer
-          </motion.button>
+          <div className="flex gap-3">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => fetchOffers()}
+              disabled={loading}
+              className="px-4 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              <svg className={`w-5 h-5 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Refresh
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                resetForm()
+                setShowModal(true)
+              }}
+              className="px-6 py-3 bg-[#0A1628] text-white rounded-lg hover:bg-[#D4AF37] hover:text-black transition-all duration-300"
+            >
+              Create New Offer
+            </motion.button>
+          </div>
         </div>
 
         {loading ? (

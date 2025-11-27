@@ -4,7 +4,16 @@ import { verifyToken } from '../../../../lib/auth'
 import User from '../../../../models/User'
 
 export default async function handler(req, res) {
-  await dbConnect()
+  try {
+    // Connect to database with error handling
+    await dbConnect()
+  } catch (dbError) {
+    console.error('Database connection failed:', dbError)
+    return res.status(503).json({ 
+      message: 'Database connection failed. Please try again.',
+      error: dbError.message 
+    })
+  }
 
   const { method } = req
 
