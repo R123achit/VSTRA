@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useAuthStore } from '../../store/useStore'
 import { useRouter } from 'next/router'
 import AdminNavbar from '../../components/AdminNavbar'
-import toast from 'react-hot-toast'
+import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
 
 export default function AdminOffers() {
@@ -14,6 +14,7 @@ export default function AdminOffers() {
   const [offers, setOffers] = useState([])
   const [products, setProducts] = useState([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingOffer, setEditingOffer] = useState(null)
   const [formData, setFormData] = useState({
@@ -78,25 +79,40 @@ export default function AdminOffers() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    
+    if (submitting) return
+    
+    setSubmitting(true)
+    const loadingToast = toast.loading(editingOffer ? 'Updating offer...' : 'Creating offer...')
+    
     try {
+      console.log('Submitting offer data:', formData)
+      
       if (editingOffer) {
-        await axios.put(
+        const response = await axios.put(
           `/api/admin/offers/${editingOffer._id}`,
           formData,
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        toast.success('Offer updated successfully')
+        console.log('Update response:', response.data)
+        toast.success('Offer updated successfully', { id: loadingToast })
       } else {
-        await axios.post('/api/admin/offers', formData, {
+        const response = await axios.post('/api/admin/offers', formData, {
           headers: { Authorization: `Bearer ${token}` },
         })
-        toast.success('Offer created successfully')
+        console.log('Create response:', response.data)
+        toast.success('Offer created successfully', { id: loadingToast })
       }
+      
       setShowModal(false)
       resetForm()
-      fetchOffers()
+      await fetchOffers()
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to save offer')
+      console.error('Error saving offer:', error)
+      console.error('Error response:', error.response?.data)
+      toast.error(error.response?.data?.message || 'Failed to save offer', { id: loadingToast })
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -180,6 +196,8 @@ export default function AdminOffers() {
       <Head>
         <title>Manage Offers - VSTRA Admin</title>
       </Head>
+      
+      <Toaster position="top-center" />
 
       <div className="min-h-screen bg-gray-50">
         <AdminNavbar />
@@ -483,14 +501,19 @@ export default function AdminOffers() {
                   <div className="flex gap-3 pt-4">
                     <button
                       type="submit"
-                      className="flex-1 px-6 py-3 bg-[#0A1628] text-white rounded-lg hover:bg-[#D4AF37] hover:text-black transition-all"
+                      disabled={submitting}
+                      className="flex-1 px-6 py-3 bg-[#0A1628] text-white rounded-lg hover:bg-[#D4AF37] hover:text-black transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {editingOffer ? 'Update Offer' : 'Create Offer'}
+                      {submitting ? 'Saving...' : (editingOffer ? 'Update Offer' : 'Create Offer')}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setShowModal(false)}
-                      className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all"
+                      onClick={() => {
+                        setShowModal(false)
+                        resetForm()
+                      }}
+                      disabled={submitting}
+                      className="flex-1 px-6 py-3 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Cancel
                     </button>
