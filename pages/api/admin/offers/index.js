@@ -53,6 +53,8 @@ export default async function handler(req, res) {
 
       case 'POST':
         try {
+          console.log('Received offer data:', req.body)
+          
           const offerData = {
             ...req.body,
             createdBy: decoded.userId,
@@ -60,22 +62,45 @@ export default async function handler(req, res) {
 
           // Validate dates
           if (new Date(offerData.startDate) >= new Date(offerData.endDate)) {
+            console.log('Date validation failed')
             return res.status(400).json({ message: 'End date must be after start date' })
           }
 
           // Generate code if not provided
-          if (!offerData.code && offerData.type !== 'bogo') {
+          if (!offerData.code || offerData.code.trim() === '') {
             offerData.code = `OFFER${Date.now().toString().slice(-6)}`
+            console.log('Generated code:', offerData.code)
           }
 
+          // Clean up empty arrays
+          if (offerData.applicableProducts && offerData.applicableProducts.length === 0) {
+            offerData.applicableProducts = []
+          }
+          if (offerData.applicableCategories && offerData.applicableCategories.length === 0) {
+            offerData.applicableCategories = []
+          }
+
+          console.log('Creating offer with data:', offerData)
           const offer = await Offer.create(offerData)
+          console.log('Offer created:', offer._id)
+          
           await offer.populate('applicableProducts', 'name images price')
 
           res.status(201).json({ offer, message: 'Offer created successfully' })
         } catch (error) {
+          console.error('Error creating offer:', error)
+          console.error('Error details:', error.message)
+          console.error('Error stack:', error.stack)
+          
           if (error.code === 11000) {
             return res.status(400).json({ message: 'Offer code already exists' })
           }
+          
+          if (error.name === 'ValidationError') {
+            const messages = Object.values(error.errors).map(err => err.message)
+            return res.status(400).json({ message: messages.join(', ') })
+          }
+          
           res.status(500).json({ message: 'Failed to create offer', error: error.message })
         }
         break

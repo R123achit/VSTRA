@@ -86,7 +86,10 @@ export default function AdminOffers() {
     const loadingToast = toast.loading(editingOffer ? 'Updating offer...' : 'Creating offer...')
     
     try {
-      console.log('Submitting offer data:', formData)
+      console.log('=== SUBMITTING OFFER ===')
+      console.log('Form data:', formData)
+      console.log('Token:', token ? 'Present' : 'Missing')
+      console.log('User:', user)
       
       if (editingOffer) {
         const response = await axios.put(
@@ -97,6 +100,7 @@ export default function AdminOffers() {
         console.log('Update response:', response.data)
         toast.success('Offer updated successfully', { id: loadingToast })
       } else {
+        console.log('Making POST request to /api/admin/offers')
         const response = await axios.post('/api/admin/offers', formData, {
           headers: { Authorization: `Bearer ${token}` },
         })
@@ -108,9 +112,15 @@ export default function AdminOffers() {
       resetForm()
       await fetchOffers()
     } catch (error) {
-      console.error('Error saving offer:', error)
-      console.error('Error response:', error.response?.data)
-      toast.error(error.response?.data?.message || 'Failed to save offer', { id: loadingToast })
+      console.error('=== ERROR SAVING OFFER ===')
+      console.error('Error:', error)
+      console.error('Error message:', error.message)
+      console.error('Error response:', error.response)
+      console.error('Error response data:', error.response?.data)
+      console.error('Error response status:', error.response?.status)
+      
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to save offer'
+      toast.error(errorMessage, { id: loadingToast })
     } finally {
       setSubmitting(false)
     }
