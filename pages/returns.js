@@ -1,17 +1,84 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Head from 'next/head'
 import { motion } from 'framer-motion'
-import { toast } from 'react-hot-toast'
+import { toast, Toaster } from 'react-hot-toast'
+import { useRouter } from 'next/router'
+import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import ActiveOffersBar from '../components/ActiveOffersBar'
+import useOffersBarVisible from '../hooks/useOffersBarVisible'
+import { useAuthStore } from '../store/useStore'
 
 export default function Returns() {
-  const [orderNumber, setOrderNumber] = useState('')
-  const [email, setEmail] = useState('')
+  const router = useRouter()
+  const { isAuthenticated } = useAuthStore()
+  const offersBarVisible = useOffersBarVisible()
+  const [loading, setLoading] = useState(false)
+  const [orders, setOrders] = useState([])
+  const [selectedOrder, setSelectedOrder] = useState(null)
+  const [selectedProduct, setSelectedProduct] = useState(null)
   const [selectedReason, setSelectedReason] = useState('')
   const [customReason, setCustomReason] = useState('')
-  const [selectedItems, setSelectedItems] = useState([])
+  const [comments, setComments] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      router.push('/auth/login')
+      return
+    }
+    fetchOrders()
+  }, [isAuthenticated])
+
+  const fetchOrders = async () => {
+    try {
+      setLoading(true)
+      const token = localStorage.getItem('token')
+      
+      // Fetch orders
+      const ordersResponse = await axios.get('/api/orders', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      // Fetch existing return requests
+      const returnsResponse = await axios.get('/api/returns', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      
+      const existingReturns = returnsResponse.data.returns || []
+      
+      console.log('Orders response:', ordersResponse.data)
+      console.log('Existing returns:', existingReturns)
+      
+      // Filter only delivered orders (not returned)
+      const deliveredOrders = ordersResponse.data.filter(order => 
+        order.status.toLowerCase() === 'delivered'
+      )
+      
+      // Filter out items that already have pending/approved/received return requests
+      const ordersWithAvailableItems = deliveredOrders.map(order => ({
+        ...order,
+        items: order.items.filter(item => {
+          const hasActiveReturn = existingReturns.some(ret => 
+            ret.orderId === order._id && 
+            ret.productId === item.product &&
+            ['pending', 'approved', 'picked_up', 'received', 'refunded'].includes(ret.status)
+          )
+          return !hasActiveReturn
+        })
+      })).filter(order => order.items.length > 0) // Remove orders with no returnable items
+      
+      console.log('Orders with returnable items:', ordersWithAvailableItems)
+      setOrders(ordersWithAvailableItems)
+    } catch (error) {
+      console.error('Error fetching orders:', error)
+      toast.error('Failed to load orders')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const returnReasons = [
     'Size too small',
@@ -26,33 +93,71 @@ export default function Returns() {
     'Other (please specify)'
   ]
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!orderNumber || !email) {
-      toast.error('Please enter order number and email')
-      return
-    }
-
     if (!selectedReason) {
       toast.error('Please select a reason for return')
       return
     }
 
-    if (selectedReason === 'Other (please specify)' && !customReason) {
+    if (selectedReason === 'Other' && !customReason) {
       toast.error('Please provide a custom reason')
       return
     }
 
-    // Simulate API call
-    toast.success('Return request submitted successfully! Check your email for confirmation.')
-    
-    // Reset form
-    setOrderNumber('')
-    setEmail('')
-    setSelectedReason('')
-    setCustomReason('')
-    setShowForm(false)
+    setSubmitting(true)
+
+    try {
+      const token = localStorage.getItem('token')
+      
+      const response = await axios.post('/api/returns', {
+        orderId: selectedOrder._id,
+        productId: selectedProduct.product,
+        reason: selectedReason,
+        customReason: selectedReason === 'Other' ? customReason : undefined,
+        comments,
+        quantity: 1,
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+
+      if (response.data.success) {
+        toast.success('🎉 Return request submitted successfully! The seller will review your request soon.', {
+          duration: 5000,
+          style: {
+            background: '#10B981',
+            color: '#fff',
+            padding: '16px',
+            fontSize: '16px'
+          }
+        })
+        
+        // Reset form
+        setSelectedOrder(null)
+        setSelectedProduct(null)
+        setSelectedReason('')
+        setCustomReason('')
+        setComments('')
+        setShowForm(false)
+        
+        // Refresh orders
+        fetchOrders()
+      }
+    } catch (error) {
+      console.error('Return request error:', error)
+      toast.error(error.response?.data?.message || 'Failed to submit return request', {
+        duration: 4000
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const selectProductForReturn = (order, item) => {
+    setSelectedOrder(order)
+    setSelectedProduct(item)
+    setShowForm(true)
   }
 
   return (
@@ -62,9 +167,11 @@ export default function Returns() {
         <meta name="description" content="Easy returns and exchanges within 30 days" />
       </Head>
 
+      <Toaster position="top-center" />
+      <ActiveOffersBar />
       <Navbar />
 
-      <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50" style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}>
         {/* Hero Section */}
         <div className="bg-black text-white py-16">
           <div className="max-w-7xl mx-auto px-6">
@@ -170,59 +277,87 @@ export default function Returns() {
               <div className="bg-white rounded-lg shadow-lg p-8">
                 <h2 className="text-2xl font-bold mb-6">Start a Return</h2>
 
-                {!showForm ? (
+                {loading ? (
+                  <div className="text-center py-12">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+                    <p className="text-gray-600 mt-4">Loading your orders...</p>
+                  </div>
+                ) : !showForm ? (
                   <div>
                     <p className="text-gray-600 mb-6">
-                      Enter your order details to begin the return process.
+                      Select an item from your delivered orders to return.
                     </p>
                     
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Order Number</label>
-                        <input
-                          type="text"
-                          value={orderNumber}
-                          onChange={(e) => setOrderNumber(e.target.value)}
-                          placeholder="e.g., VSTRA-12345"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                        />
+                    {orders.length === 0 ? (
+                      <div className="text-center py-8">
+                        <p className="text-gray-600 mb-4">No delivered orders found.</p>
+                        <button
+                          onClick={() => router.push('/shop')}
+                          className="bg-black text-white px-6 py-3 rounded-lg hover:bg-gray-800"
+                        >
+                          Start Shopping
+                        </button>
                       </div>
-
-                      <div>
-                        <label className="block text-sm font-medium mb-2">Email Address</label>
-                        <input
-                          type="email"
-                          value={email}
-                          onChange={(e) => setEmail(e.target.value)}
-                          placeholder="your@email.com"
-                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
-                        />
+                    ) : (
+                      <div className="space-y-4 max-h-96 overflow-y-auto">
+                        {orders.map((order) => (
+                          <div key={order._id} className="border rounded-lg p-4">
+                            <div className="flex justify-between items-start mb-3">
+                              <div>
+                                <p className="font-semibold">Order #{order._id?.slice(-8) || 'N/A'}</p>
+                                <p className="text-sm text-gray-600">
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <span className="px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                                {order.status}
+                              </span>
+                            </div>
+                            <div className="space-y-2">
+                              {order.items.map((item, idx) => (
+                                <div key={idx} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                                  <img 
+                                    src={item.image} 
+                                    alt={item.name}
+                                    className="w-16 h-16 object-cover rounded"
+                                  />
+                                  <div className="flex-1">
+                                    <p className="font-medium text-sm">{item.name}</p>
+                                    <p className="text-xs text-gray-600">
+                                      Size: {item.size} | Qty: {item.qty}
+                                    </p>
+                                  </div>
+                                  <button
+                                    onClick={() => selectProductForReturn(order, item)}
+                                    className="px-4 py-2 bg-purple-600 text-white text-sm rounded-lg hover:bg-purple-700"
+                                  >
+                                    Return
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
                       </div>
-
-                      <button
-                        onClick={() => {
-                          if (orderNumber && email) {
-                            setShowForm(true)
-                          } else {
-                            toast.error('Please fill in all fields')
-                          }
-                        }}
-                        className="w-full bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-semibold"
-                      >
-                        Continue
-                      </button>
-                    </div>
+                    )}
                   </div>
                 ) : (
                   <form onSubmit={handleSubmit}>
                     <div className="space-y-6">
-                      <div className="p-4 bg-green-50 rounded-lg">
-                        <p className="text-sm text-green-800">
-                          <strong>Order Found:</strong> {orderNumber}
-                        </p>
-                        <p className="text-sm text-green-800">
-                          <strong>Email:</strong> {email}
-                        </p>
+                      <div className="p-4 bg-blue-50 rounded-lg">
+                        <div className="flex items-center gap-3 mb-2">
+                          <img 
+                            src={selectedProduct?.image} 
+                            alt={selectedProduct?.name}
+                            className="w-16 h-16 object-cover rounded"
+                          />
+                          <div>
+                            <p className="font-semibold">{selectedProduct?.name}</p>
+                            <p className="text-sm text-gray-600">
+                              Order #{selectedOrder?._id?.slice(-8) || 'N/A'}
+                            </p>
+                          </div>
+                        </div>
                       </div>
 
                       <div>
@@ -249,7 +384,7 @@ export default function Returns() {
                         </div>
                       </div>
 
-                      {selectedReason === 'Other (please specify)' && (
+                      {selectedReason === 'Other' && (
                         <div>
                           <label className="block text-sm font-medium mb-2">
                             Please specify your reason
@@ -269,6 +404,8 @@ export default function Returns() {
                           Additional Comments (Optional)
                         </label>
                         <textarea
+                          value={comments}
+                          onChange={(e) => setComments(e.target.value)}
                           rows="3"
                           placeholder="Any additional information..."
                           className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent"
@@ -278,16 +415,25 @@ export default function Returns() {
                       <div className="flex gap-3">
                         <button
                           type="button"
-                          onClick={() => setShowForm(false)}
-                          className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold"
+                          onClick={() => {
+                            setShowForm(false)
+                            setSelectedOrder(null)
+                            setSelectedProduct(null)
+                            setSelectedReason('')
+                            setCustomReason('')
+                            setComments('')
+                          }}
+                          disabled={submitting}
+                          className="flex-1 bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold disabled:opacity-50"
                         >
                           Back
                         </button>
                         <button
                           type="submit"
-                          className="flex-1 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-semibold"
+                          disabled={submitting}
+                          className="flex-1 bg-black text-white py-3 rounded-lg hover:bg-gray-800 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          Submit Return Request
+                          {submitting ? 'Submitting...' : 'Submit Return Request'}
                         </button>
                       </div>
                     </div>

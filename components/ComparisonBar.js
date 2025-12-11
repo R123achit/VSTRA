@@ -15,7 +15,7 @@ export default function ComparisonBar() {
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         exit={{ y: 100 }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A1628] text-white shadow-2xl"
+        className="fixed bottom-0 left-0 right-0 z-[55] bg-[#0A1628] text-white shadow-2xl"
       >
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between gap-4">

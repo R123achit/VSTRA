@@ -130,6 +130,13 @@ export default function AdminDashboard() {
                     <p className="text-sm text-gray-600">Manage customer orders</p>
                   </div>
                 </Link>
+                <Link href="/admin/refunds">
+                  <div className="p-6 border-2 border-orange-200 hover:border-orange-600 cursor-pointer transition-colors bg-orange-50">
+                    <div className="text-3xl mb-3">💰</div>
+                    <h4 className="font-semibold mb-2">Manage Refunds</h4>
+                    <p className="text-sm text-gray-600">Process manual refunds</p>
+                  </div>
+                </Link>
                 <Link href="/admin/seed-500">
                   <div className="p-6 border-2 border-gray-200 hover:border-black cursor-pointer transition-colors">
                     <div className="text-3xl mb-3">🌱</div>
@@ -142,6 +149,13 @@ export default function AdminDashboard() {
                     <div className="text-3xl mb-3">📊</div>
                     <h4 className="font-semibold mb-2">Analytics</h4>
                     <p className="text-sm text-gray-600">View insights & reports</p>
+                  </div>
+                </Link>
+                <Link href="/admin/sellers">
+                  <div className="p-6 border-2 border-purple-200 hover:border-purple-600 cursor-pointer transition-colors bg-purple-50">
+                    <div className="text-3xl mb-3">🏪</div>
+                    <h4 className="font-semibold mb-2">Manage Sellers</h4>
+                    <p className="text-sm text-gray-600">Approve & manage sellers</p>
                   </div>
                 </Link>
                 <Link href="/admin/users">

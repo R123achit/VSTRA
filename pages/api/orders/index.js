@@ -1,8 +1,10 @@
 import connectDB from '../../../lib/mongodb'
 import Order from '../../../models/Order'
 import User from '../../../models/User'
+import Product from '../../../models/Product'
 import { authMiddleware } from '../../../lib/auth'
 import { sendOrderConfirmationEmail } from '../../../lib/email'
+import { calculateCommission } from '../../../utils/commission'
 
 async function handler(req, res) {
   await connectDB()
@@ -23,6 +25,7 @@ async function handler(req, res) {
         status: order.status.charAt(0).toUpperCase() + order.status.slice(1), // Capitalize status
         totalAmount: order.totalPrice,
         items: order.orderItems.map(item => ({
+          product: item.product, // Include product ID for returns
           name: item.name,
           size: item.size,
           color: item.color,
@@ -53,6 +56,28 @@ async function handler(req, res) {
       }
 
       const order = await Order.create(orderData)
+
+      // Process commissions for seller products
+      for (const item of order.orderItems) {
+        const product = await Product.findById(item.product)
+        
+        if (product && product.sellerId) {
+          // This is a seller product, calculate commission
+          const itemTotal = item.price * item.quantity
+          
+          try {
+            await calculateCommission(
+              order._id,
+              product.sellerId,
+              product._id,
+              itemTotal
+            )
+            console.log(`✅ Commission calculated for seller product: ${product.name}`)
+          } catch (error) {
+            console.error('❌ Commission calculation error:', error)
+          }
+        }
+      }
 
       // Get user details for email
       const user = await User.findById(req.userId)

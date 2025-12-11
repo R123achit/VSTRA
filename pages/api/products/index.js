@@ -2,6 +2,11 @@ import connectDB from '../../../lib/mongodb'
 import Product from '../../../models/Product'
 
 export default async function handler(req, res) {
+  // Disable caching to always get fresh data
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
+  res.setHeader('Pragma', 'no-cache')
+  res.setHeader('Expires', '0')
+  
   await connectDB()
 
   if (req.method === 'GET') {
@@ -32,7 +37,7 @@ export default async function handler(req, res) {
       else if (sort === 'rating') sortOption = { rating: -1 }
       else sortOption = { createdAt: -1 }
 
-      const limitNum = limit ? parseInt(limit) : 100
+      const limitNum = limit ? parseInt(limit) : 1000 // Increased default limit
 
       const products = await Product.find(query)
         .sort(sortOption)
@@ -60,6 +65,21 @@ export default async function handler(req, res) {
         return res.status(400).json({ 
           success: false, 
           message: 'Missing required fields: name, description, price, category, images, stock' 
+        })
+      }
+
+      // Check for duplicate product (same name and category)
+      const existingProduct = await Product.findOne({ 
+        name: name.trim(), 
+        category: category 
+      })
+      
+      if (existingProduct) {
+        console.error('Duplicate product detected:', name, category)
+        return res.status(409).json({
+          success: false,
+          message: `Product "${name}" already exists in ${category} category`,
+          existingProductId: existingProduct._id
         })
       }
 
@@ -101,6 +121,15 @@ export default async function handler(req, res) {
       })
     } catch (error) {
       console.error('Create product error:', error)
+      
+      // Handle duplicate key error from MongoDB
+      if (error.code === 11000) {
+        return res.status(409).json({ 
+          success: false, 
+          message: 'A product with this name already exists in this category',
+        })
+      }
+      
       res.status(400).json({ 
         success: false, 
         message: error.message || 'Failed to create product',

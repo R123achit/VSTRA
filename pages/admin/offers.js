@@ -158,7 +158,9 @@ export default function AdminOffers() {
       value: offer.value,
       buyQuantity: offer.buyQuantity || 1,
       getQuantity: offer.getQuantity || 1,
-      applicableProducts: offer.applicableProducts.map(p => p._id),
+      applicableProducts: Array.isArray(offer.applicableProducts) 
+        ? offer.applicableProducts.map(p => typeof p === 'string' ? p : p._id)
+        : [],
       applicableCategories: offer.applicableCategories || [],
       applyToAll: offer.applyToAll,
       minPurchaseAmount: offer.minPurchaseAmount,

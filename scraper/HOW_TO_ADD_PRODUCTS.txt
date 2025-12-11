@@ -1,0 +1,88 @@
+========================================
+HOW TO ADD MORE PRODUCTS
+========================================
+
+SIMPLE PRODUCT MANAGEMENT SYSTEM
+
+You now have 37 products in your shop!
+
+To add more products:
+
+1. Open: scraper/scripts/importProducts.js
+
+2. Copy this template and add it to the products array:
+
+  {
+    title: "Product Name Here",
+    price: 499,                    // Selling price
+    originalPrice: 999,            // Original price (for discount)
+    discount: 50,                  // Discount percentage
+    image: "https://images.unsplash.com/photo-XXXXX?w=800&q=80",
+    images: ["https://images.unsplash.com/photo-XXXXX?w=800&q=80"],
+    rating: 4.2,                   // 0 to 5
+    reviewCount: 1234,             // Number of reviews
+    category: "men-tshirts",       // See categories below
+    productId: "UNIQUE001",        // Must be unique!
+    brand: "Brand Name",
+    description: "Product description",
+    inStock: true,
+    sizes: ["S", "M", "L", "XL"],
+    colors: ["Black", "White"],
+    source: "flipkart"
+  },
+
+3. Categories available:
+   - men-tshirts
+   - men-shirts
+   - women-western
+   - women-ethnic
+   - kids-clothing
+
+4. Get FREE images from Unsplash:
+   - Go to: https://unsplash.com/
+   - Search for clothing type (e.g., "men tshirt")
+   - Right-click image → Copy image address
+   - Use format: https://images.unsplash.com/photo-XXXXX?w=800&q=80
+   - Images are FREE, high-quality, and never expire!
+
+5. Save the file
+
+6. Run: npm run import
+
+7. Refresh your shop page!
+
+
+EXAMPLE - Adding a new product:
+
+  {
+    title: "Nike Men Running Shoes",
+    price: 2999,
+    originalPrice: 5999,
+    discount: 50,
+    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80",
+    images: ["https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&q=80"],
+    rating: 4.6,
+    reviewCount: 25678,
+    category: "men-tshirts",
+    productId: "SHOEFKRT001",
+    brand: "Nike",
+    description: "Men Running Shoes",
+    inStock: true,
+    sizes: ["7", "8", "9", "10"],
+    colors: ["Black", "White"],
+    source: "flipkart"
+  },
+
+
+TIPS:
+- Make sure productId is UNIQUE for each product
+- Use realistic prices (check Flipkart for reference)
+- Keep discount between 20-70%
+- Rating should be 3.5 to 5.0
+- Review count: 100 to 50000
+
+
+CURRENT PRODUCT COUNT: 37
+
+To see all products:
+http://localhost:3000/shop

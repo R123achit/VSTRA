@@ -48,7 +48,6 @@ export default async function handler(req, res) {
           }
 
           const offers = await Offer.find(query)
-            .populate('applicableProducts', 'name images price')
             .sort({ priority: -1, createdAt: -1 })
             .lean()
 
@@ -92,8 +91,6 @@ export default async function handler(req, res) {
           console.log('Creating offer with data:', offerData)
           const offer = await Offer.create(offerData)
           console.log('Offer created:', offer._id)
-          
-          await offer.populate('applicableProducts', 'name images price')
 
           res.status(201).json({ offer, message: 'Offer created successfully' })
         } catch (error) {

@@ -12,6 +12,7 @@ export default function AdminNavbar() {
     { href: '/admin/dashboard', label: 'Dashboard' },
     { href: '/admin/products', label: 'Products' },
     { href: '/admin/orders', label: 'Orders' },
+    { href: '/admin/sellers', label: 'Sellers' },
     { href: '/admin/offers', label: 'Offers', special: true },
     { href: '/admin/users', label: 'Users' },
   ]

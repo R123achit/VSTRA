@@ -7,12 +7,13 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import WishlistButton from '../components/WishlistButton'
 import StyleAssistant from '../components/StyleAssistant'
-import ActiveOffersBar from '../components/ActiveOffersBar'
+import PremiumOfferSystem from '../components/PremiumOfferSystem'
 import WeatherRecommendations from '../components/WeatherRecommendations'
 import ComparisonBar from '../components/ComparisonBar'
 import CompareButton from '../components/CompareButton'
-import ShopPageOfferBanner from '../components/ShopPageOfferBanner'
-import StickyOfferSidebar from '../components/StickyOfferSidebar'
+import QuickView from '../components/QuickView'
+import ProductSkeleton from '../components/ProductSkeleton'
+import ScrollToTop from '../components/ScrollToTop'
 import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useCartStore } from '../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
@@ -31,6 +32,7 @@ export default function Shop() {
   const [selectedSizes, setSelectedSizes] = useState([])
   const [viewMode, setViewMode] = useState('grid') // grid or list
   const [showFilters, setShowFilters] = useState(false)
+  const [quickViewProduct, setQuickViewProduct] = useState(null)
   const addToCart = useCartStore((state) => state.addToCart)
 
   // Get category and search from URL query
@@ -51,7 +53,11 @@ export default function Shop() {
     try {
       setLoading(true)
       const response = await axios.get('/api/products', {
-        params: { category, sort: sortBy }
+        params: { 
+          category, 
+          sort: sortBy,
+          _t: Date.now() // Cache buster
+        }
       })
       setProducts(response.data.data)
       setFilteredProducts(response.data.data)
@@ -136,16 +142,14 @@ export default function Shop() {
         <meta name="description" content="Discover our complete collection of premium clothing" />
       </Head>
       <Toaster position="top-center" />
-      <ActiveOffersBar />
+      <PremiumOfferSystem />
       <Navbar />
       <StyleAssistant />
       <ComparisonBar />
       
-      <StickyOfferSidebar />
-      
       <main 
         className="pb-20 px-6 lg:px-12 min-h-screen bg-vstra-light transition-all duration-300" 
-        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -164,9 +168,6 @@ export default function Shop() {
 
           {/* Weather-Based Recommendations */}
           <WeatherRecommendations />
-
-          {/* Offer Banners */}
-          <ShopPageOfferBanner />
 
           {/* Search Bar */}
           <motion.div
@@ -350,9 +351,13 @@ export default function Shop() {
               </div>
 
               {loading ? (
-                <div className="text-center py-20">
-                  <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
-                  <p className="mt-4 text-gray-600">Loading products...</p>
+                <div
+                  className={viewMode === 'grid' 
+                    ? 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6'
+                    : 'space-y-6'
+                  }
+                >
+                  <ProductSkeleton count={viewMode === 'grid' ? 9 : 6} />
                 </div>
               ) : filteredProducts.length === 0 ? (
                 <div className="text-center py-20">
@@ -400,6 +405,21 @@ export default function Shop() {
                           
                           {/* Action Buttons */}
                           <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex gap-2">
+                            <motion.button
+                              whileHover={{ scale: 1.1 }}
+                              whileTap={{ scale: 0.9 }}
+                              onClick={(e) => {
+                                e.preventDefault()
+                                setQuickViewProduct(product)
+                              }}
+                              className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                              title="Quick View"
+                            >
+                              <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                              </svg>
+                            </motion.button>
                             <CompareButton product={product} size="md" />
                             <WishlistButton product={product} size="md" />
                           </div>
@@ -504,6 +524,12 @@ export default function Shop() {
         </div>
       </main>
 
+      <QuickView 
+        product={quickViewProduct}
+        isOpen={!!quickViewProduct}
+        onClose={() => setQuickViewProduct(null)}
+      />
+      <ScrollToTop />
       <Footer />
     </>
   )

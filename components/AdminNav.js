@@ -9,6 +9,7 @@ export default function AdminNav({ user }) {
     { name: 'Dashboard', path: '/admin/dashboard', icon: '📊' },
     { name: 'Products', path: '/admin/products', icon: '📦' },
     { name: 'Orders', path: '/admin/orders', icon: '📋' },
+    { name: 'Sellers', path: '/admin/sellers', icon: '🏪' },
     { name: 'Users', path: '/admin/users', icon: '👥' },
     { name: 'Analytics', path: '/admin/analytics', icon: '📈' },
   ]

@@ -113,7 +113,7 @@ export default function Account() {
 
       <main 
         className="pb-20 px-6 lg:px-12 min-h-screen bg-vstra-light transition-all duration-300" 
-        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
         <div className="max-w-7xl mx-auto">
           <motion.h1

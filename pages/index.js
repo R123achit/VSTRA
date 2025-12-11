@@ -7,20 +7,21 @@ import Hero from '../components/Hero'
 import Categories from '../components/Categories'
 import Featured from '../components/Featured'
 import FlashSaleBanner from '../components/FlashSaleBanner'
-import ActiveOffersBar from '../components/ActiveOffersBar'
 import ComparisonBar from '../components/ComparisonBar'
 import AutoScrollCarousel from '../components/AutoScrollCarousel'
-import OfferBanner from '../components/OfferBanner'
-import OfferPopup from '../components/OfferPopup'
-import OfferCarousel from '../components/OfferCarousel'
-import FloatingOfferNotification from '../components/FloatingOfferNotification'
+import PremiumOfferSystem from '../components/PremiumOfferSystem'
+import PremiumOffersShowcase from '../components/PremiumOffersShowcase'
 
 // Lazy load heavy components
 const Story = dynamic(() => import('../components/Story'), { ssr: false })
 const Lookbook = dynamic(() => import('../components/Lookbook'), { ssr: false })
 const Footer = dynamic(() => import('../components/Footer'), { ssr: false })
 const StyleAssistant = dynamic(() => import('../components/StyleAssistant'), { ssr: false })
-const FlyingClothsRive = dynamic(() => import('../components/FlyingClothsRiveFallback'), { ssr: false })
+const RecentlyViewed = dynamic(() => import('../components/RecentlyViewed'), { ssr: false })
+const TrustBadges = dynamic(() => import('../components/TrustBadges'), { ssr: false })
+const ScrollToTop = dynamic(() => import('../components/ScrollToTop'), { ssr: false })
+const LiveChat = dynamic(() => import('../components/LiveChat'), { ssr: false })
+const NewsletterPopup = dynamic(() => import('../components/NewsletterPopup'), { ssr: false })
 
 export default function Home() {
   useEffect(() => {
@@ -42,21 +43,22 @@ export default function Home() {
       </Head>
 
       <Toaster position="top-center" />
-      <OfferBanner />
-      <OfferPopup />
-      <FloatingOfferNotification />
-      <ActiveOffersBar />
+      <PremiumOfferSystem />
+      <NewsletterPopup />
       <Navbar />
-      <FlyingClothsRive />
       <StyleAssistant />
       <ComparisonBar />
+      <LiveChat />
+      <ScrollToTop />
       
       <main>
         <Hero />
-        <OfferCarousel />
+        <TrustBadges />
+        <PremiumOffersShowcase />
         <FlashSaleBanner />
         <Categories />
         <Featured />
+        <RecentlyViewed />
         <Story />
         <Lookbook />
         <Footer />

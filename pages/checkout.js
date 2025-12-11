@@ -5,7 +5,7 @@ import Script from 'next/script'
 import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
-import ActiveOffersBar from '../components/ActiveOffersBar'
+import PremiumOfferSystem from '../components/PremiumOfferSystem'
 import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useCartStore, useAuthStore } from '../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
@@ -263,12 +263,12 @@ export default function Checkout() {
         onError={() => toast.error('Failed to load payment system')}
       />
       <Toaster position="top-center" />
-      <ActiveOffersBar />
+      <PremiumOfferSystem />
       <Navbar />
 
       <main 
         className="pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12 transition-all duration-300" 
-        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
         <div className="max-w-7xl mx-auto">
           <motion.h1

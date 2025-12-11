@@ -6,7 +6,7 @@ import { useRouter } from 'next/router'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import WishlistButton from '../components/WishlistButton'
-import ActiveOffersBar from '../components/ActiveOffersBar'
+import PremiumOfferSystem from '../components/PremiumOfferSystem'
 import useOffersBarVisible from '../hooks/useOffersBarVisible'
 import { useAuthStore, useCartStore, useWishlistStore } from '../store/useStore'
 import toast from 'react-hot-toast'
@@ -66,12 +66,12 @@ export default function Wishlist() {
         <meta name="description" content="Your saved items" />
       </Head>
 
-      <ActiveOffersBar />
+      <PremiumOfferSystem />
       <Navbar />
 
       <main 
         className="min-h-screen bg-white pb-20 transition-all duration-300" 
-        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
         <div className="max-w-7xl mx-auto px-6">
           {/* Header */}

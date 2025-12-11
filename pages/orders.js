@@ -7,11 +7,14 @@ import { useRouter } from 'next/router'
 import axios from 'axios'
 import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
+import ActiveOffersBar from '../components/ActiveOffersBar'
 import CancelOrder from '../components/CancelOrder'
+import useOffersBarVisible from '../hooks/useOffersBarVisible'
 
 export default function Orders() {
   const router = useRouter()
   const { isAuthenticated } = useAuthStore()
+  const offersBarVisible = useOffersBarVisible()
   const [showCancelModal, setShowCancelModal] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -84,6 +87,7 @@ export default function Orders() {
       case 'Shipped': return 'bg-blue-100 text-blue-800'
       case 'Processing': return 'bg-yellow-100 text-yellow-800'
       case 'Cancelled': return 'bg-red-100 text-red-800'
+      case 'Returned': return 'bg-purple-100 text-purple-800'
       default: return 'bg-gray-100 text-gray-800'
     }
   }
@@ -95,9 +99,10 @@ export default function Orders() {
         <meta name="description" content="View and manage your orders" />
       </Head>
 
+      <ActiveOffersBar />
       <Navbar />
 
-      <div className="min-h-screen bg-gray-50 pt-20">
+      <div className="min-h-screen bg-gray-50" style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}>
         <div className="max-w-7xl mx-auto px-6 py-12">
           <motion.div
             initial={{ opacity: 0, y: 20 }}

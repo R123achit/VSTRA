@@ -7,9 +7,12 @@ import Footer from '../../components/Footer'
 import WishlistButton from '../../components/WishlistButton'
 import CompareButton from '../../components/CompareButton'
 import ComparisonBar from '../../components/ComparisonBar'
-import ActiveOffersBar from '../../components/ActiveOffersBar'
+import PremiumOfferSystem from '../../components/PremiumOfferSystem'
 import ReviewSection from '../../components/ReviewSection'
 import StyleAssistant from '../../components/StyleAssistant'
+import SizeGuide from '../../components/SizeGuide'
+import ScrollToTop from '../../components/ScrollToTop'
+import TrustBadges from '../../components/TrustBadges'
 import { useCartStore } from '../../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -22,7 +25,19 @@ export default function ProductDetail() {
   const [selectedSize, setSelectedSize] = useState('')
   const [selectedColor, setSelectedColor] = useState(null)
   const [quantity, setQuantity] = useState(1)
+  const [offersBarVisible, setOffersBarVisible] = useState(true)
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0)
+  const [isZoomed, setIsZoomed] = useState(false)
+  const [showSizeGuide, setShowSizeGuide] = useState(false)
   const addToCart = useCartStore((state) => state.addToCart)
+
+  useEffect(() => {
+    const handleOffersBarVisibility = (e) => {
+      setOffersBarVisible(e.detail.visible)
+    }
+    window.addEventListener('offersBarVisibility', handleOffersBarVisibility)
+    return () => window.removeEventListener('offersBarVisibility', handleOffersBarVisibility)
+  }, [])
 
   useEffect(() => {
     if (id) {
@@ -38,6 +53,12 @@ export default function ProductDetail() {
       setProduct(productData)
       setSelectedSize(productData.sizes?.[0] || '')
       setSelectedColor(productData.colors?.[0] || null)
+      
+      // Add to recently viewed
+      const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
+      const filtered = recentlyViewed.filter(p => p._id !== productData._id)
+      const updated = [productData, ...filtered].slice(0, 10)
+      localStorage.setItem('recentlyViewed', JSON.stringify(updated))
     } catch (error) {
       console.error('Error fetching product:', error)
       toast.error('Failed to load product')
@@ -92,45 +113,181 @@ export default function ProductDetail() {
         <title>{product.name} - VSTRA</title>
       </Head>
       <Toaster position="top-center" />
-      <ActiveOffersBar />
+      <PremiumOfferSystem />
       <Navbar />
       <StyleAssistant />
       <ComparisonBar />
 
-      <main className="pt-24 sm:pt-32 pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12">
+      <main 
+        className="pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12 transition-all duration-300"
+        style={{ 
+          paddingTop: offersBarVisible ? '10rem' : '7rem',
+          minHeight: '100vh'
+        }}
+      >
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
-            {/* Images */}
+            {/* Images - Flipkart Style */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="space-y-4"
+              className="flex gap-4"
             >
-              <div className="aspect-[3/4] bg-gray-100 overflow-hidden relative group">
-                <img
-                  src={product.images[0]}
-                  alt={product.name}
-                  className="w-full h-full object-cover"
-                />
-                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
-                  <CompareButton product={product} size="lg" />
-                  <WishlistButton product={product} size="lg" />
-                </div>
-              </div>
+              {/* Thumbnail Column - Premium Style */}
               {product.images.length > 1 && (
-                <div className="grid grid-cols-4 gap-2">
-                  {product.images.slice(1, 5).map((img, idx) => (
-                    <div key={idx} className="aspect-square bg-gray-100 overflow-hidden">
+                <div className="flex flex-col gap-3 w-16 sm:w-20">
+                  {product.images.map((img, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => setSelectedImageIndex(idx)}
+                      className={`aspect-square bg-white overflow-hidden cursor-pointer rounded-lg transition-all duration-300 ${
+                        selectedImageIndex === idx
+                          ? 'ring-2 ring-black ring-offset-2 shadow-xl scale-105 opacity-100'
+                          : 'opacity-60 hover:opacity-100 hover:shadow-lg hover:scale-102'
+                      }`}
+                    >
                       <img
                         src={img}
-                        alt={`${product.name} ${idx + 2}`}
-                        className="w-full h-full object-cover hover:scale-110 transition-transform duration-300 cursor-pointer"
+                        alt={`${product.name} ${idx + 1}`}
+                        className="w-full h-full object-cover"
                       />
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Main Image - Premium Style */}
+              <div className="flex-1">
+                <div 
+                  className="aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden relative group rounded-2xl cursor-zoom-in shadow-2xl border border-gray-200/50"
+                  onClick={() => setIsZoomed(true)}
+                >
+                  {/* Subtle gradient overlay for depth */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none z-10" />
+                  
+                  <img
+                    src={product.images[selectedImageIndex]}
+                    alt={product.name}
+                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
+                  />
+                  
+                  {/* Premium glass-morphism buttons */}
+                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2 z-20">
+                    <div className="backdrop-blur-md bg-white/80 rounded-full p-1 shadow-lg">
+                      <CompareButton product={product} size="lg" />
+                    </div>
+                    <div className="backdrop-blur-md bg-white/80 rounded-full p-1 shadow-lg">
+                      <WishlistButton product={product} size="lg" />
+                    </div>
+                  </div>
+                  
+                  {/* Premium zoom hint with icon */}
+                  <div className="absolute bottom-6 right-6 backdrop-blur-md bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2 shadow-xl">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                    </svg>
+                    Click to zoom
+                  </div>
+                  
+                  {/* Image indicator dots */}
+                  {product.images.length > 1 && (
+                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                      {product.images.map((_, idx) => (
+                        <div
+                          key={idx}
+                          className={`h-1.5 rounded-full transition-all duration-300 ${
+                            selectedImageIndex === idx
+                              ? 'w-8 bg-white shadow-lg'
+                              : 'w-1.5 bg-white/50 hover:bg-white/80'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Premium Navigation Arrows */}
+                {product.images.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setSelectedImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))}
+                      className="absolute left-20 sm:left-24 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/90 hover:bg-white p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200/50"
+                    >
+                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={() => setSelectedImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/90 hover:bg-white p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200/50"
+                    >
+                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  </>
+                )}
+              </div>
             </motion.div>
+
+            {/* Zoom Modal */}
+            {isZoomed && (
+              <div 
+                className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
+                onClick={() => setIsZoomed(false)}
+              >
+                <button
+                  onClick={() => setIsZoomed(false)}
+                  className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/70 p-2 rounded-full"
+                >
+                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+                
+                <div className="relative max-w-5xl max-h-[90vh] w-full">
+                  <img
+                    src={product.images[selectedImageIndex]}
+                    alt={product.name}
+                    className="w-full h-full object-contain"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                  
+                  {/* Zoom Navigation */}
+                  {product.images.length > 1 && (
+                    <>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))
+                        }}
+                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg"
+                      >
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          setSelectedImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))
+                        }}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg"
+                      >
+                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                      
+                      {/* Image counter */}
+                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
+                        {selectedImageIndex + 1} / {product.images.length}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Details */}
             <motion.div
@@ -161,22 +318,35 @@ export default function ProductDetail() {
               {/* Size Selection */}
               {product.sizes && product.sizes.length > 0 && (
                 <div>
-                  <label className="block text-sm font-semibold mb-3">
-                    Size
-                  </label>
+                  <div className="flex items-center justify-between mb-3">
+                    <label className="block text-sm font-semibold">
+                      Size
+                    </label>
+                    <button
+                      onClick={() => setShowSizeGuide(true)}
+                      className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 transition-colors"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      </svg>
+                      Size Guide
+                    </button>
+                  </div>
                   <div className="flex gap-3">
                     {product.sizes.map((size) => (
-                      <button
+                      <motion.button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`px-6 py-3 border-2 transition-colors ${
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className={`px-6 py-3 border-2 rounded-lg font-semibold transition-all ${
                           selectedSize === size
-                            ? 'border-black bg-black text-white'
+                            ? 'border-black bg-black text-white shadow-lg'
                             : 'border-gray-300 hover:border-black'
                         }`}
                       >
                         {size}
-                      </button>
+                      </motion.button>
                     ))}
                   </div>
                 </div>
@@ -296,6 +466,11 @@ export default function ProductDetail() {
             </motion.div>
           </div>
 
+          {/* Trust Badges */}
+          <div className="mt-16">
+            <TrustBadges />
+          </div>
+
           {/* Reviews Section */}
           <div className="mt-20">
             <ReviewSection productId={product._id} />
@@ -303,6 +478,12 @@ export default function ProductDetail() {
         </div>
       </main>
 
+      <SizeGuide 
+        isOpen={showSizeGuide} 
+        onClose={() => setShowSizeGuide(false)}
+        category={product.category}
+      />
+      <ScrollToTop />
       <Footer />
     </>
   )

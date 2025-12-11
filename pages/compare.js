@@ -43,7 +43,7 @@ export default function Compare() {
         <Navbar />
         <main 
           className="pb-20 px-6 lg:px-12 min-h-screen transition-all duration-300" 
-          style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+          style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
         >
           <div className="max-w-7xl mx-auto text-center py-20">
             <svg className="w-24 h-24 mx-auto mb-6 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -91,7 +91,7 @@ export default function Compare() {
 
       <main 
         className="pb-20 px-6 lg:px-12 min-h-screen bg-gray-50 transition-all duration-300" 
-        style={{ marginTop: offersBarVisible ? 'calc(5rem + 3rem)' : '5rem' }}
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
         <div className="max-w-7xl mx-auto">
           <motion.div

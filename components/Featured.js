@@ -234,7 +234,7 @@ export default function Featured() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get('/api/products?featured=true&limit=6')
+      const response = await axios.get(`/api/products?featured=true&limit=6&_t=${Date.now()}`)
       setProducts(response.data.data)
     } catch (error) {
       console.error('Error fetching products:', error)

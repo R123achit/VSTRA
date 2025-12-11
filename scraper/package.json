@@ -1,0 +1,26 @@
+{
+  "name": "vstra-product-manager",
+  "version": "1.0.0",
+  "description": "Product management system for VSTRA ecommerce",
+  "main": "server.js",
+  "scripts": {
+    "import": "node scripts/importProducts.js",
+    "test-connection": "node test-connection.js",
+    "fix-db": "node scripts/fixDatabase.js"
+  },
+  "keywords": [
+    "ecommerce",
+    "products",
+    "clothing",
+    "database"
+  ],
+  "author": "VSTRA",
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.3.1",
+    "mongoose": "^8.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}

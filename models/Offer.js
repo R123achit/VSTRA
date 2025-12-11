@@ -51,7 +51,6 @@ const OfferSchema = new mongoose.Schema({
   },
   code: {
     type: String,
-    unique: true,
     sparse: true,
     uppercase: true,
   },
@@ -88,7 +87,8 @@ const OfferSchema = new mongoose.Schema({
   timestamps: true,
 })
 
-OfferSchema.index({ code: 1 })
+// Create unique sparse index for code (allows null/undefined but enforces uniqueness when present)
+OfferSchema.index({ code: 1 }, { unique: true, sparse: true })
 OfferSchema.index({ isActive: 1, startDate: 1, endDate: 1 })
 
 export default mongoose.models.Offer || mongoose.model('Offer', OfferSchema)

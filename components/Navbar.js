@@ -50,13 +50,15 @@ function Navbar() {
   return (
     <motion.nav
       initial={{ y: -100 }}
-      animate={{ y: 0, top: offersBarVisible ? '3rem' : '0rem' }}
+      animate={{ y: 0 }}
       transition={{ duration: 0.3, ease: 'easeOut' }}
       style={{ 
         backgroundColor: `rgba(255, 255, 255, ${scrollOpacity})`,
-        backdropFilter: scrollOpacity < 1 ? 'blur(10px)' : 'none'
+        backdropFilter: scrollOpacity < 1 ? 'blur(10px)' : 'none',
+        top: offersBarVisible ? '3rem' : '0rem',
+        zIndex: 50
       }}
-      className={`fixed left-0 right-0 z-40 transition-all duration-500 ease-in-out ${
+      className={`fixed left-0 right-0 transition-all duration-300 ease-in-out ${
         scrolled 
           ? 'shadow-lg text-black' 
           : 'text-black shadow-md'
