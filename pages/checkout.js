@@ -21,6 +21,7 @@ export default function Checkout() {
   const [razorpayLoaded, setRazorpayLoaded] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [orderDetails, setOrderDetails] = useState(null)
+  const [scriptError, setScriptError] = useState(false)
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -41,6 +42,26 @@ export default function Checkout() {
       router.push('/auth/login')
     }
   }, [isAuthenticated, router])
+
+  // Check if Razorpay is already loaded
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.Razorpay) {
+      console.log('Razorpay already available on window')
+      setRazorpayLoaded(true)
+    }
+    
+    // Add a timeout to check if script is taking too long
+    const timeout = setTimeout(() => {
+      if (!razorpayLoaded && typeof window !== 'undefined' && window.Razorpay) {
+        console.log('Razorpay loaded via timeout check')
+        setRazorpayLoaded(true)
+      } else if (!razorpayLoaded) {
+        console.warn('Razorpay script taking longer than expected to load')
+      }
+    }, 5000)
+    
+    return () => clearTimeout(timeout)
+  }, [])
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value })
@@ -92,7 +113,16 @@ export default function Checkout() {
     }
 
     if (!razorpayLoaded) {
-      toast.error('Payment system is loading. Please wait...')
+      if (scriptError) {
+        toast.error('Payment system failed to load. Please refresh the page.')
+      } else {
+        toast.error('Payment system is loading. Please wait...')
+      }
+      return
+    }
+
+    if (!window.Razorpay) {
+      toast.error('Payment system not available. Please refresh the page.')
       return
     }
 
@@ -259,8 +289,16 @@ export default function Checkout() {
       </Head>
       <Script
         src="https://checkout.razorpay.com/v1/checkout.js"
-        onLoad={() => setRazorpayLoaded(true)}
-        onError={() => toast.error('Failed to load payment system')}
+        strategy="lazyOnload"
+        onLoad={() => {
+          console.log('Razorpay script loaded successfully')
+          setRazorpayLoaded(true)
+        }}
+        onError={(e) => {
+          console.error('Failed to load Razorpay script:', e)
+          setScriptError(true)
+          toast.error('Failed to load payment system. Please refresh the page.')
+        }}
       />
       <Toaster position="top-center" />
       <PremiumOfferSystem />
@@ -362,11 +400,34 @@ export default function Checkout() {
 
                 <button
                   type="submit"
-                  disabled={loading || !razorpayLoaded}
+                  disabled={loading || !razorpayLoaded || scriptError}
                   className="w-full bg-black text-white py-4 text-sm font-semibold tracking-widest uppercase hover:bg-gray-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Processing...' : !razorpayLoaded ? 'Loading Payment...' : 'Proceed to Payment'}
+                  {loading 
+                    ? 'Processing...' 
+                    : scriptError 
+                    ? 'Payment System Error - Refresh Page' 
+                    : !razorpayLoaded 
+                    ? 'Loading Payment System...' 
+                    : 'Proceed to Payment'}
                 </button>
+                
+                {!razorpayLoaded && !scriptError && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (typeof window !== 'undefined' && window.Razorpay) {
+                        setRazorpayLoaded(true)
+                        toast.success('Payment system ready!')
+                      } else {
+                        toast.error('Payment system still loading. Please wait or refresh.')
+                      }
+                    }}
+                    className="w-full bg-gray-200 text-gray-700 py-2 text-xs font-semibold tracking-widest uppercase hover:bg-gray-300 transition-colors mt-2"
+                  >
+                    Check Payment System Status
+                  </button>
+                )}
                 
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
