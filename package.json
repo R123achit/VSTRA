@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test:api": "node scripts/test_product_api.js",
+    "check:products": "node scripts/count_products.js"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
