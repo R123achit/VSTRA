@@ -182,28 +182,7 @@ export default function AdminDashboard() {
               </div>
             </div>
 
-            {/* Recent Activity */}
-            <div className="bg-white p-8 shadow-lg">
-              <h3 className="text-2xl font-bold mb-6">Recent Activity</h3>
-              <div className="space-y-4">
-                <div className="flex items-center gap-4 p-4 bg-gray-50">
-                  <div className="w-2 h-2 bg-green-600 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="font-semibold">Database Connected</p>
-                    <p className="text-sm text-gray-600">MongoDB Atlas is running</p>
-                  </div>
-                  <span className="text-sm text-gray-500">Just now</span>
-                </div>
-                <div className="flex items-center gap-4 p-4 bg-gray-50">
-                  <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-                  <div className="flex-1">
-                    <p className="font-semibold">{stats.totalProducts} Products Available</p>
-                    <p className="text-sm text-gray-600">Ready for customers</p>
-                  </div>
-                  <span className="text-sm text-gray-500">Today</span>
-                </div>
-              </div>
-            </div>
+
           </motion.div>
         </main>
       </div>

@@ -236,156 +236,262 @@ export default function AdminAnalytics() {
                 )}
               </div>
 
-              {/* Low Stock Alert with Intelligence */}
-              <div className="bg-white shadow-lg p-6 rounded-lg">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-2xl font-bold">⚠️ Low Stock Alert</h3>
-                  {analytics?.lowStockProducts?.length > 0 && (
-                    <span className="px-3 py-1 bg-red-100 text-red-800 text-sm font-semibold rounded-full">
-                      {analytics.lowStockProducts.length} items need attention
-                    </span>
-                  )}
-                </div>
-                
-                {analytics?.lowStockProducts?.length > 0 ? (
-                  <div className="space-y-3">
-                    {analytics.lowStockProducts.map(product => {
-                      // Calculate urgency level
-                      const urgency = product.stock === 0 ? 'critical' : 
-                                     product.stock < 3 ? 'high' : 
-                                     product.stock < 5 ? 'medium' : 'low'
-                      
-                      const urgencyColors = {
-                        critical: 'bg-red-100 border-red-500 text-red-900',
-                        high: 'bg-orange-100 border-orange-500 text-orange-900',
-                        medium: 'bg-yellow-100 border-yellow-500 text-yellow-900',
-                        low: 'bg-blue-100 border-blue-500 text-blue-900'
-                      }
+              {/* ── Inventory Command Center ── */}
+              {(() => {
+                const products = analytics?.lowStockProducts || []
+                const summary = analytics?.stockSummary || {}
+                const total = (summary.outOfStock || 0) + (summary.critical || 0) + (summary.low || 0) + (summary.healthy || 0)
+                const healthScore = total > 0 ? Math.round(((summary.healthy || 0) / total) * 100) : 100
+                const scoreColor = healthScore >= 80 ? '#059669' : healthScore >= 50 ? '#d97706' : '#dc2626'
 
-                      const urgencyBadge = {
-                        critical: 'bg-red-600 text-white',
-                        high: 'bg-orange-600 text-white',
-                        medium: 'bg-yellow-600 text-white',
-                        low: 'bg-blue-600 text-white'
-                      }
+                // Group products by urgency
+                const groups = {
+                  outOfStock: products.filter(p => p.stock === 0),
+                  critical: products.filter(p => p.stock > 0 && p.stock < 3),
+                  low: products.filter(p => p.stock >= 3 && p.stock < 5),
+                  monitor: products.filter(p => p.stock >= 5),
+                }
 
-                      // Intelligent restock suggestion
-                      const suggestedRestock = product.stock === 0 ? 50 :
-                                              product.stock < 3 ? 30 :
-                                              product.stock < 5 ? 20 : 15
+                const columns = [
+                  { key: 'outOfStock', label: 'Out of Stock', count: groups.outOfStock.length, color: '#dc2626', lightBg: '#fef2f2', borderColor: '#fecaca', items: groups.outOfStock },
+                  { key: 'critical', label: 'Critical', count: groups.critical.length, color: '#ea580c', lightBg: '#fff7ed', borderColor: '#fed7aa', items: groups.critical },
+                  { key: 'low', label: 'Low Stock', count: groups.low.length, color: '#d97706', lightBg: '#fffbeb', borderColor: '#fde68a', items: groups.low },
+                  { key: 'monitor', label: 'Monitor', count: groups.monitor.length, color: '#2563eb', lightBg: '#eff6ff', borderColor: '#bfdbfe', items: groups.monitor },
+                ]
 
-                      return (
-                        <div 
-                          key={product._id} 
-                          className={`border-l-4 p-4 rounded ${urgencyColors[urgency]}`}
-                        >
-                          <div className="flex justify-between items-start mb-3">
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <p className="font-semibold text-lg">{product.name}</p>
-                                <span className={`px-2 py-1 text-xs font-bold rounded ${urgencyBadge[urgency]}`}>
-                                  {urgency.toUpperCase()}
-                                </span>
-                              </div>
-                              <p className="text-sm opacity-75">
-                                Category: {product.category} • Price: ₹{product.price}
-                              </p>
-                            </div>
-                            <div className="text-right">
-                              <p className={`text-2xl font-bold ${product.stock === 0 ? 'text-red-600' : ''}`}>
-                                {product.stock}
-                              </p>
-                              <p className="text-xs opacity-75">in stock</p>
-                            </div>
-                          </div>
+                // Semicircle gauge math
+                const gaugeRadius = 70
+                const gaugeCircumference = Math.PI * gaugeRadius
+                const gaugeDashOffset = gaugeCircumference - (healthScore / 100) * gaugeCircumference
 
-                          {/* AI Recommendations */}
-                          <div className="bg-white/50 rounded p-3 mb-3">
-                            <p className="text-sm font-semibold mb-2">🤖 AI Recommendation:</p>
-                            <div className="space-y-1 text-sm">
-                              {product.stock === 0 && (
-                                <p className="text-red-700">
-                                  ⚠️ <strong>Out of Stock!</strong> Customers cannot purchase this item.
-                                </p>
-                              )}
-                              <p>
-                                💡 Suggested restock: <strong>{suggestedRestock} units</strong>
-                              </p>
-                              {product.rating > 4 && (
-                                <p className="text-green-700">
-                                  ⭐ High-rated product ({product.rating}★) - Priority restock recommended
-                                </p>
-                              )}
-                              {product.numReviews > 10 && (
-                                <p className="text-blue-700">
-                                  🔥 Popular item ({product.numReviews} reviews) - High demand expected
-                                </p>
-                              )}
-                            </div>
-                          </div>
-
-                          {/* Quick Actions */}
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => {
-                                const newStock = prompt(`Enter new stock quantity for "${product.name}":`, suggestedRestock)
-                                if (newStock) {
-                                  // You can add API call here to update stock
-                                  alert(`Stock will be updated to ${newStock} units`)
-                                }
-                              }}
-                              className="flex-1 bg-green-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-green-700 transition-colors"
-                            >
-                              📦 Restock Now
-                            </button>
-                            <button
-                              onClick={() => {
-                                window.open(`/admin/products`, '_blank')
-                              }}
-                              className="px-4 py-2 border-2 border-gray-300 rounded text-sm font-semibold hover:bg-gray-100 transition-colors"
-                            >
-                              ✏️ Edit
-                            </button>
+                return (
+                  <div className="space-y-6">
+                    {/* Health Score Banner */}
+                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                      <div className="flex flex-col md:flex-row items-center gap-6 px-8 py-6">
+                        {/* Semicircle Gauge */}
+                        <div className="relative shrink-0" style={{ width: 160, height: 90 }}>
+                          <svg width="160" height="90" viewBox="0 0 160 90">
+                            {/* Track */}
+                            <path d="M 10 85 A 70 70 0 0 1 150 85" fill="none" stroke="#f3f4f6" strokeWidth="10" strokeLinecap="round" />
+                            {/* Fill */}
+                            <path d="M 10 85 A 70 70 0 0 1 150 85" fill="none" stroke={scoreColor} strokeWidth="10" strokeLinecap="round"
+                              strokeDasharray={gaugeCircumference}
+                              strokeDashoffset={gaugeDashOffset}
+                              style={{ transition: 'stroke-dashoffset 1s cubic-bezier(0.4, 0, 0.2, 1)' }} />
+                          </svg>
+                          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 text-center">
+                            <span className="text-3xl font-black text-gray-900">{healthScore}</span>
+                            <span className="text-sm font-medium text-gray-400">%</span>
                           </div>
                         </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="text-center py-10">
-                    <div className="text-6xl mb-4">✅</div>
-                    <p className="text-gray-600 text-lg font-semibold mb-2">All Products Well Stocked!</p>
-                    <p className="text-sm text-gray-500">
-                      No items below 10 units. Your inventory is healthy.
-                    </p>
-                  </div>
-                )}
 
-                {/* Stock Health Summary */}
-                {analytics?.stockSummary && (
-                  <div className="mt-6 pt-6 border-t">
-                    <h4 className="font-semibold mb-3">📊 Stock Health Summary</h4>
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="text-center p-3 bg-red-50 rounded">
-                        <p className="text-2xl font-bold text-red-600">{analytics.stockSummary.outOfStock || 0}</p>
-                        <p className="text-xs text-gray-600">Out of Stock</p>
-                      </div>
-                      <div className="text-center p-3 bg-orange-50 rounded">
-                        <p className="text-2xl font-bold text-orange-600">{analytics.stockSummary.critical || 0}</p>
-                        <p className="text-xs text-gray-600">Critical (&lt;3)</p>
-                      </div>
-                      <div className="text-center p-3 bg-yellow-50 rounded">
-                        <p className="text-2xl font-bold text-yellow-600">{analytics.stockSummary.low || 0}</p>
-                        <p className="text-xs text-gray-600">Low (3-10)</p>
-                      </div>
-                      <div className="text-center p-3 bg-green-50 rounded">
-                        <p className="text-2xl font-bold text-green-600">{analytics.stockSummary.healthy || 0}</p>
-                        <p className="text-xs text-gray-600">Healthy (&gt;10)</p>
+                        {/* Score Info */}
+                        <div className="flex-1 text-center md:text-left">
+                          <h3 className="text-xl font-bold text-gray-900">Inventory Health Score</h3>
+                          <p className="text-sm text-gray-500 mt-1">
+                            {healthScore >= 80 ? 'Your inventory is in great shape. Keep monitoring for changes.' :
+                             healthScore >= 50 ? 'Some products need attention. Review the alerts below.' :
+                             'Critical inventory issues detected. Immediate action required.'}
+                          </p>
+                        </div>
+
+                        {/* Quick Stats */}
+                        <div className="flex gap-4 shrink-0">
+                          {[
+                            { n: summary.outOfStock || 0, label: 'Empty', color: '#dc2626' },
+                            { n: summary.critical || 0, label: 'Critical', color: '#ea580c' },
+                            { n: summary.low || 0, label: 'Low', color: '#d97706' },
+                            { n: summary.healthy || 0, label: 'OK', color: '#059669' },
+                          ].map((s, i) => (
+                            <div key={i} className="text-center px-3">
+                              <p className="text-xl font-bold" style={{ color: s.color }}>{s.n}</p>
+                              <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wide mt-0.5">{s.label}</p>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
+
+                    {/* Kanban Severity Board */}
+                    {products.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+                        {columns.map(col => (
+                          <div key={col.key} className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col">
+                            {/* Column Header */}
+                            <div className="px-4 py-3 border-b flex items-center justify-between" style={{ borderBottomColor: col.borderColor, backgroundColor: col.lightBg }}>
+                              <div className="flex items-center gap-2">
+                                <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: col.color }}></span>
+                                <span className="text-sm font-bold text-gray-800">{col.label}</span>
+                              </div>
+                              <span className="text-xs font-bold px-2 py-0.5 rounded-md" style={{ backgroundColor: col.color + '15', color: col.color }}>
+                                {col.count}
+                              </span>
+                            </div>
+
+                            {/* Column Content */}
+                            <div className="flex-1 p-3 space-y-3 overflow-y-auto" style={{ maxHeight: '420px' }}>
+                              {col.items.length > 0 ? col.items.map(product => {
+                                const stockPercent = Math.min((product.stock / 10) * 100, 100)
+                                const suggestedRestock = product.stock === 0 ? 50 : product.stock < 3 ? 30 : product.stock < 5 ? 20 : 15
+                                const circumference = 2 * Math.PI * 14
+                                const dashOffset = circumference - (stockPercent / 100) * circumference
+
+                                return (
+                                  <div key={product._id}
+                                    className="rounded-lg border border-gray-150 bg-white p-3 hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 group cursor-default"
+                                    style={{ borderColor: '#e5e7eb' }}>
+
+                                    {/* Product header row */}
+                                    <div className="flex items-start gap-2.5 mb-2">
+                                      {/* Mini ring gauge */}
+                                      <div className="relative shrink-0" style={{ width: 36, height: 36 }}>
+                                        <svg className="-rotate-90" width="36" height="36" viewBox="0 0 36 36">
+                                          <circle cx="18" cy="18" r="14" fill="none" stroke="#f3f4f6" strokeWidth="3" />
+                                          <circle cx="18" cy="18" r="14" fill="none" stroke={col.color} strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeDasharray={circumference}
+                                            strokeDashoffset={dashOffset}
+                                            style={{ transition: 'stroke-dashoffset 0.5s ease' }} />
+                                        </svg>
+                                        <div className="absolute inset-0 flex items-center justify-center">
+                                          <span className="text-[10px] font-bold text-gray-700">{product.stock}</span>
+                                        </div>
+                                      </div>
+
+                                      {/* Name & details */}
+                                      <div className="flex-1 min-w-0">
+                                        <p className="text-[13px] font-semibold text-gray-900 truncate leading-tight">{product.name}</p>
+                                        <p className="text-[11px] text-gray-500 mt-0.5 flex items-center gap-1">
+                                          <span className="capitalize">{product.category}</span>
+                                          <span className="text-gray-300">·</span>
+                                          <span>₹{product.price?.toLocaleString('en-IN')}</span>
+                                          {product.rating > 0 && (
+                                            <>
+                                              <span className="text-gray-300">·</span>
+                                              <svg className="w-2.5 h-2.5 text-amber-400 inline" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>
+                                              <span>{product.rating}</span>
+                                            </>
+                                          )}
+                                        </p>
+                                      </div>
+                                    </div>
+
+                                    {/* Smart tags */}
+                                    {(product.stock === 0 || product.rating > 4 || product.numReviews > 10) && (
+                                      <div className="flex flex-wrap gap-1 mb-2.5">
+                                        {product.stock === 0 && (
+                                          <span className="text-[9px] font-semibold text-red-700 bg-red-50 px-1.5 py-0.5 rounded border border-red-100">REVENUE LOSS</span>
+                                        )}
+                                        {product.rating > 4 && (
+                                          <span className="text-[9px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">TOP RATED</span>
+                                        )}
+                                        {product.numReviews > 10 && (
+                                          <span className="text-[9px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100">HIGH DEMAND</span>
+                                        )}
+                                      </div>
+                                    )}
+
+                                    {/* Restock suggestion */}
+                                    <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+                                      <span className="text-[11px] text-gray-500">
+                                        Restock <span className="font-semibold text-gray-700">+{suggestedRestock}</span> units
+                                      </span>
+                                      <button
+                                        onClick={() => {
+                                          const qty = prompt(`Restock "${product.name}"\nSuggested: ${suggestedRestock} units\n\nEnter quantity:`, suggestedRestock)
+                                          if (qty) alert(`Stock updated to ${qty} units`)
+                                        }}
+                                        className="text-[11px] font-semibold px-2.5 py-1 rounded-md transition-all duration-150 active:scale-95"
+                                        style={{ backgroundColor: col.color + '12', color: col.color, border: `1px solid ${col.color}25` }}
+                                        onMouseEnter={e => { e.target.style.backgroundColor = col.color; e.target.style.color = '#fff' }}
+                                        onMouseLeave={e => { e.target.style.backgroundColor = col.color + '12'; e.target.style.color = col.color }}
+                                      >
+                                        Restock
+                                      </button>
+                                    </div>
+                                  </div>
+                                )
+                              }) : (
+                                <div className="flex-1 flex items-center justify-center py-8 text-center">
+                                  <div>
+                                    <div className="w-10 h-10 rounded-full mx-auto mb-2 flex items-center justify-center" style={{ backgroundColor: col.lightBg }}>
+                                      <svg className="w-5 h-5" style={{ color: col.color }} fill="none" stroke="currentColor" strokeWidth={1.8} viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                    </div>
+                                    <p className="text-xs text-gray-400 font-medium">All clear</p>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Column Footer */}
+                            {col.items.length > 0 && (
+                              <div className="px-4 py-2.5 border-t border-gray-100 bg-gray-50/50">
+                                <button
+                                  onClick={() => window.open('/admin/products', '_blank')}
+                                  className="w-full text-[11px] font-medium text-gray-500 hover:text-gray-900 flex items-center justify-center gap-1 transition-colors"
+                                >
+                                  View all in Products
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12h15m0 0l-6.75-6.75M19.5 12l-6.75 6.75" /></svg>
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="rounded-2xl shadow-sm border border-gray-200 overflow-hidden" style={{ background: 'linear-gradient(135deg, #ecfdf5 0%, #f0fdf4 30%, #ffffff 70%, #eff6ff 100%)' }}>
+                        <div className="py-16 px-6">
+                          {/* Animated success icon with pulsing rings */}
+                          <div className="relative w-24 h-24 mx-auto mb-6">
+                            {/* Outer pulse ring */}
+                            <div className="absolute inset-0 rounded-full border-2 border-emerald-200 animate-ping" style={{ animationDuration: '2.5s' }}></div>
+                            {/* Middle ring */}
+                            <div className="absolute inset-2 rounded-full border border-emerald-100 animate-pulse" style={{ animationDuration: '2s' }}></div>
+                            {/* Core circle */}
+                            <div className="absolute inset-3 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)', boxShadow: '0 8px 24px rgba(5, 150, 105, 0.3)' }}>
+                              <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <h3 className="text-xl font-bold text-gray-900">Inventory Fully Stocked</h3>
+                          <p className="text-sm text-gray-500 mt-2 max-w-sm mx-auto leading-relaxed">
+                            All products are above the minimum threshold. No restocking actions needed at this time.
+                          </p>
+
+                          {/* Mini stat tiles */}
+                          <div className="flex items-center justify-center gap-3 mt-8">
+                            {[
+                              { label: 'Products', value: summary.healthy || total || '—', color: '#059669', bg: '#ecfdf5' },
+                              { label: 'Alerts', value: '0', color: '#6b7280', bg: '#f9fafb' },
+                              { label: 'Health', value: '100%', color: '#059669', bg: '#ecfdf5' },
+                              { label: 'Status', value: 'OK', color: '#059669', bg: '#ecfdf5' },
+                            ].map((s, i) => (
+                              <div key={i} className="text-center px-4 py-3 rounded-xl border border-gray-100" style={{ backgroundColor: s.bg }}>
+                                <p className="text-lg font-bold" style={{ color: s.color }}>{s.value}</p>
+                                <p className="text-[10px] text-gray-500 font-medium uppercase tracking-wider mt-0.5">{s.label}</p>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Decorative bottom line */}
+                          <div className="flex items-center justify-center gap-1.5 mt-8">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                            <span className="w-8 h-0.5 rounded-full bg-emerald-200"></span>
+                            <span className="text-[10px] font-semibold text-emerald-600 uppercase tracking-widest">System Healthy</span>
+                            <span className="w-8 h-0.5 rounded-full bg-emerald-200"></span>
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                )}
-              </div>
+                )
+              })()}
 
               {/* Top Products */}
               <div className="bg-white shadow-lg p-6 rounded-lg">

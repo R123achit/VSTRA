@@ -5,6 +5,26 @@ import { useEffect } from 'react'
 import { useCartStore, useAuthStore } from '../store/useStore'
 
 function MyApp({ Component, pageProps }) {
+  // Suppress MetaMask extension errors
+  useEffect(() => {
+    const handleError = (e) => {
+      if (e.message?.includes('Failed to connect to MetaMask') || 
+          e.reason?.message?.includes('Failed to connect to MetaMask')) {
+        // Prevent the error from crashing the app/showing the overlay
+        e.stopImmediatePropagation() 
+        e.preventDefault()
+      }
+    }
+    
+    window.addEventListener('error', handleError)
+    window.addEventListener('unhandledrejection', handleError)
+    
+    return () => {
+      window.removeEventListener('error', handleError)
+      window.removeEventListener('unhandledrejection', handleError)
+    }
+  }, [])
+
   const cart = useCartStore((state) => state.items)
   const user = useAuthStore((state) => state.user)
 

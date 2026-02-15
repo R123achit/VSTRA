@@ -26,6 +26,7 @@ export default function Shop() {
   const [filteredProducts, setFilteredProducts] = useState([])
   const [loading, setLoading] = useState(true)
   const [category, setCategory] = useState('all')
+  const [subcategory, setSubcategory] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
   const [searchQuery, setSearchQuery] = useState('')
   const [priceRange, setPriceRange] = useState([0, 10000])
@@ -35,19 +36,22 @@ export default function Shop() {
   const [quickViewProduct, setQuickViewProduct] = useState(null)
   const addToCart = useCartStore((state) => state.addToCart)
 
-  // Get category and search from URL query
+  // Get category, subcategory and search from URL query
   useEffect(() => {
     if (router.query.category) {
       setCategory(router.query.category)
     }
+    if (router.query.subcategory) {
+      setSubcategory(router.query.subcategory)
+    }
     if (router.query.search) {
       setSearchQuery(router.query.search)
     }
-  }, [router.query.category, router.query.search])
+  }, [router.query.category, router.query.subcategory, router.query.search])
 
   useEffect(() => {
     fetchProducts()
-  }, [category, sortBy])
+  }, [category, subcategory, sortBy])
 
   const fetchProducts = async () => {
     try {
@@ -55,6 +59,7 @@ export default function Shop() {
       const response = await axios.get('/api/products', {
         params: { 
           category, 
+          subcategory: subcategory !== 'all' ? subcategory : undefined,
           sort: sortBy,
           _t: Date.now() // Cache buster
         }
@@ -123,15 +128,54 @@ export default function Shop() {
     setPriceRange([0, 10000])
     setSelectedSizes([])
     setCategory('all')
+    setSubcategory('all')
   }
 
   const categories = [
     { value: 'all', label: 'All Products', count: products.length },
     { value: 'men', label: 'Men', count: products.filter(p => p.category === 'men').length },
     { value: 'women', label: 'Women', count: products.filter(p => p.category === 'women').length },
+    { value: 'kids', label: 'Kids', count: products.filter(p => p.category === 'kids').length },
     { value: 'new-arrivals', label: 'New Arrivals', count: products.filter(p => p.category === 'new-arrivals').length },
     { value: 'accessories', label: 'Accessories', count: products.filter(p => p.category === 'accessories').length },
   ]
+
+  // Subcategory definitions for each category
+  const subcategoryMap = {
+    men: [
+      { value: 'all', label: 'All Men' },
+      { value: 'Shirts', label: 'Shirts' },
+      { value: 'T-Shirts', label: 'T-Shirts' },
+      { value: 'Jeans', label: 'Jeans' },
+      { value: 'Shoes', label: 'Shoes' },
+      { value: 'Underwear', label: 'Underwear' },
+    ],
+    women: [
+      { value: 'all', label: 'All Women' },
+      { value: 'Sarees', label: 'Sarees' },
+      { value: 'Dresses', label: 'Dresses' },
+      { value: 'Kurtas', label: 'Kurtas' },
+      { value: 'Tops', label: 'Tops' },
+      { value: 'Innerwear', label: 'Innerwear' },
+    ],
+    kids: [
+      { value: 'all', label: 'All Kids' },
+      { value: 'Boys Clothing', label: 'Boys Clothing' },
+      { value: 'Girls Clothing', label: 'Girls Clothing' },
+      { value: 'Kids Footwear', label: 'Kids Footwear' },
+      { value: 'Kids Accessories', label: 'Kids Accessories' },
+      { value: 'Baby Clothing', label: 'Baby Clothing' },
+    ],
+    accessories: [
+      { value: 'all', label: 'All Accessories' },
+      { value: 'Bags', label: 'Bags' },
+      { value: 'Jewellery', label: 'Jewellery' },
+      { value: 'Footwear', label: 'Footwear' },
+      { value: 'Formal Accessories', label: 'Formal' },
+    ],
+  }
+
+  const currentSubcategories = subcategoryMap[category] || null
 
   const sizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL']
 
@@ -221,7 +265,7 @@ export default function Shop() {
                     {categories.map((cat) => (
                       <button
                         key={cat.value}
-                        onClick={() => setCategory(cat.value)}
+                        onClick={() => { setCategory(cat.value); setSubcategory('all'); }}
                         className={`w-full text-left px-4 py-2 rounded transition-colors ${
                           category === cat.value
                             ? 'bg-black text-white'
@@ -237,7 +281,31 @@ export default function Shop() {
                   </div>
                 </div>
 
-                {/* Price Range - FIXED: Added ₹ symbol to inputs */}
+                {/* Subcategories */}
+                {currentSubcategories && (
+                  <div className="mb-8">
+                    <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider">Sub-Collection</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {currentSubcategories.map((sub) => (
+                        <motion.button
+                          key={sub.value}
+                          onClick={() => setSubcategory(sub.value)}
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 border-2 ${
+                            subcategory === sub.value
+                              ? 'border-black bg-black text-white shadow-md'
+                              : 'border-gray-300 bg-white text-gray-700 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          {sub.label}
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Price Range */}
                 <div className="mb-8">
                   <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider">Price Range</h3>
                   <div className="space-y-4">
@@ -280,7 +348,7 @@ export default function Shop() {
                   </div>
                 </div>
 
-                {/* Sizes - FIXED: Improved button states and hover effects */}
+                {/* Sizes */}
                 <div className="mb-8">
                   <h3 className="text-sm font-semibold mb-4 uppercase tracking-wider">Size</h3>
                   <div className="grid grid-cols-3 gap-2">

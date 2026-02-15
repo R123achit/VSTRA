@@ -11,12 +11,16 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { category, featured, search, sort, limit } = req.query
+      const { category, subcategory, featured, search, sort, limit } = req.query
 
       let query = {}
 
       if (category && category !== 'all') {
         query.category = category
+      }
+
+      if (subcategory && subcategory !== 'all') {
+        query.subcategory = subcategory
       }
 
       if (featured === 'true') {

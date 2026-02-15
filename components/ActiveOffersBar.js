@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import axios from 'axios'
 import { formatTimeLeft } from '../utils/offerUtils'
@@ -7,11 +7,17 @@ export default function ActiveOffersBar() {
   const [offers, setOffers] = useState([])
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isVisible, setIsVisible] = useState(true)
+  const barRef = useRef(null)
 
   useEffect(() => {
-    // Notify when visibility changes
+    // Notify when visibility changes, include measured height
     if (typeof window !== 'undefined') {
-      window.dispatchEvent(new CustomEvent('offersBarVisibility', { detail: { visible: isVisible && offers.length > 0 } }))
+      const visible = isVisible && offers.length > 0
+      // Delay measurement to after DOM paint so offsetHeight is accurate
+      requestAnimationFrame(() => {
+        const height = barRef.current ? barRef.current.offsetHeight : 0
+        window.dispatchEvent(new CustomEvent('offersBarVisibility', { detail: { visible, height: visible ? height : 0 } }))
+      })
     }
   }, [isVisible, offers])
 
@@ -44,10 +50,11 @@ export default function ActiveOffersBar() {
   return (
     <AnimatePresence>
       <motion.div
+        ref={barRef}
         initial={{ y: -100 }}
         animate={{ y: 0 }}
         exit={{ y: -100 }}
-        className="fixed top-0 left-0 right-0 z-50 overflow-hidden shadow-2xl"
+        className="fixed top-0 left-0 right-0 z-[51] overflow-hidden shadow-2xl"
         style={{
           background: 'linear-gradient(135deg, #D4AF37 0%, #CD7F32 25%, #D4AF37 50%, #CD7F32 75%, #D4AF37 100%)',
           backgroundSize: '200% 200%',
