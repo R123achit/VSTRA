@@ -4,5 +4,8 @@
       "path": "/api/abandoned-cart/process",
       "schedule": "0 * * * *"
     }
-  ]
+  ],
+  "buildCommand": "next build",
+  "framework": "nextjs",
+  "regions": ["bom1"]
 }

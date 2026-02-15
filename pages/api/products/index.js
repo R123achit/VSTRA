@@ -41,11 +41,9 @@ export default async function handler(req, res) {
       else if (sort === 'rating') sortOption = { rating: -1 }
       else sortOption = { createdAt: -1 }
 
-      const limitNum = limit ? parseInt(limit) : 1000 // Increased default limit
-
+      // Remove limit to fetch all products
       const products = await Product.find(query)
         .sort(sortOption)
-        .limit(limitNum)
 
       res.status(200).json({
         success: true,
