@@ -1,0 +1,3 @@
+Last deployment trigger: 2024-12-17
+Changes: Removed product limit to show all 500+ products
+Status: Force rebuild to ensure latest code is deployed

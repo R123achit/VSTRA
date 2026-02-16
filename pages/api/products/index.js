@@ -3,9 +3,11 @@ import Product from '../../../models/Product'
 
 export default async function handler(req, res) {
   // Disable caching to always get fresh data
+  // Updated: 2024-12-17 - Removed product limit to show all products
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate')
   res.setHeader('Pragma', 'no-cache')
   res.setHeader('Expires', '0')
+  res.setHeader('Surrogate-Control', 'no-store')
   
   await connectDB()
 
