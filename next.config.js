@@ -29,10 +29,6 @@ const nextConfig = {
   // Performance optimizations
   poweredByHeader: false,
   generateEtags: true,
-  // Ensure CSS is properly handled
-  experimental: {
-    optimizeCss: true,
-  },
   // Webpack configuration
   webpack: (config, { isServer }) => {
     // Exclude nodemailer from client-side bundle
