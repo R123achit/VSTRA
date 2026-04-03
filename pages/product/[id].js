@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { motion } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/router'
 import Head from 'next/head'
 import Navbar from '../../components/Navbar'
@@ -12,7 +12,7 @@ import ReviewSection from '../../components/ReviewSection'
 import StyleAssistant from '../../components/StyleAssistant'
 import SizeGuide from '../../components/SizeGuide'
 import ScrollToTop from '../../components/ScrollToTop'
-import TrustBadges from '../../components/TrustBadges'
+import SimilarProducts from '../../components/SimilarProducts'
 import { useCartStore } from '../../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -29,6 +29,7 @@ export default function ProductDetail() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
   const [isZoomed, setIsZoomed] = useState(false)
   const [showSizeGuide, setShowSizeGuide] = useState(false)
+  const [openSection, setOpenSection] = useState('details')
   const addToCart = useCartStore((state) => state.addToCart)
 
   useEffect(() => {
@@ -40,9 +41,7 @@ export default function ProductDetail() {
   }, [])
 
   useEffect(() => {
-    if (id) {
-      fetchProduct()
-    }
+    if (id) fetchProduct()
   }, [id])
 
   const fetchProduct = async () => {
@@ -53,8 +52,7 @@ export default function ProductDetail() {
       setProduct(productData)
       setSelectedSize(productData.sizes?.[0] || '')
       setSelectedColor(productData.colors?.[0] || null)
-      
-      // Add to recently viewed
+
       const recentlyViewed = JSON.parse(localStorage.getItem('recentlyViewed') || '[]')
       const filtered = recentlyViewed.filter(p => p._id !== productData._id)
       const updated = [productData, ...filtered].slice(0, 10)
@@ -68,11 +66,10 @@ export default function ProductDetail() {
   }
 
   const handleAddToCart = () => {
-    if (!selectedSize) {
+    if (!selectedSize && product.sizes?.length > 0) {
       toast.error('Please select a size')
       return
     }
-
     addToCart({
       _id: product._id,
       name: product.name,
@@ -81,16 +78,48 @@ export default function ProductDetail() {
       size: selectedSize,
       color: selectedColor?.name || 'Default',
     })
-
-    toast.success(`${product.name} added to cart!`)
+    toast.success(`Added to bag`, {
+      style: { background: '#000', color: '#fff', fontSize: '14px', letterSpacing: '0.5px' },
+      iconTheme: { primary: '#fff', secondary: '#000' },
+    })
   }
 
+  const toggleSection = (section) => {
+    setOpenSection(openSection === section ? null : section)
+  }
+
+  // Loading skeleton — Westside style
   if (loading) {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black"></div>
+        <div className="min-h-screen bg-white" style={{ paddingTop: '7rem' }}>
+          <div className="max-w-[1440px] mx-auto px-6 lg:px-12 py-8">
+            {/* Breadcrumb skeleton */}
+            <div className="h-4 bg-gray-100 rounded w-64 mb-8" />
+            <div className="flex flex-col lg:flex-row gap-10">
+              {/* Image grid skeleton */}
+              <div className="lg:w-[62%] grid grid-cols-2 gap-1">
+                {[1,2,3,4].map(i => (
+                  <div key={i} className="aspect-[3/4] bg-gray-100 animate-pulse" />
+                ))}
+              </div>
+              {/* Details skeleton */}
+              <div className="lg:w-[38%] space-y-6 pt-4">
+                <div className="h-4 bg-gray-100 rounded w-20" />
+                <div className="h-6 bg-gray-100 rounded w-3/4" />
+                <div className="h-8 bg-gray-100 rounded w-1/3" />
+                <div className="h-px bg-gray-100 w-full" />
+                <div className="h-4 bg-gray-100 rounded w-16" />
+                <div className="flex gap-3">
+                  {[1,2,3,4,5].map(i => (
+                    <div key={i} className="w-12 h-12 bg-gray-100 rounded animate-pulse" />
+                  ))}
+                </div>
+                <div className="h-14 bg-gray-100 rounded animate-pulse" />
+              </div>
+            </div>
+          </div>
         </div>
       </>
     )
@@ -100,8 +129,14 @@ export default function ProductDetail() {
     return (
       <>
         <Navbar />
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Product not found</p>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white">
+          <p className="text-lg text-gray-400 tracking-wide">Product not found</p>
+          <button
+            onClick={() => router.push('/shop')}
+            className="mt-6 px-8 py-3 bg-black text-white text-xs tracking-[0.2em] uppercase hover:bg-gray-900 transition-colors"
+          >
+            Continue Shopping
+          </button>
         </div>
       </>
     )
@@ -110,376 +145,492 @@ export default function ProductDetail() {
   return (
     <>
       <Head>
-        <title>{product.name} - VSTRA</title>
+        <title>{product.name} — VSTRA</title>
+        <meta name="description" content={`Shop ${product.name} from VSTRA. ${product.description?.slice(0, 150)}`} />
       </Head>
+
       <Toaster position="top-center" />
       <PremiumOfferSystem />
       <Navbar />
       <StyleAssistant />
       <ComparisonBar />
 
-      <main 
-        className="pb-12 sm:pb-20 px-4 sm:px-6 lg:px-12 transition-all duration-300"
-        style={{ 
-          paddingTop: offersBarVisible ? '10rem' : '7rem',
-          minHeight: '100vh'
-        }}
+      <main
+        className="bg-white min-h-screen transition-all duration-300"
+        style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}
       >
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-12">
-            {/* Images - Flipkart Style */}
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="flex gap-4"
-            >
-              {/* Thumbnail Column - Premium Style */}
-              {product.images.length > 1 && (
-                <div className="flex flex-col gap-3 w-16 sm:w-20">
-                  {product.images.map((img, idx) => (
-                    <div
-                      key={idx}
-                      onClick={() => setSelectedImageIndex(idx)}
-                      className={`aspect-square bg-white overflow-hidden cursor-pointer rounded-lg transition-all duration-300 ${
-                        selectedImageIndex === idx
-                          ? 'ring-2 ring-black ring-offset-2 shadow-xl scale-105 opacity-100'
-                          : 'opacity-60 hover:opacity-100 hover:shadow-lg hover:scale-102'
-                      }`}
-                    >
-                      <img
-                        src={img}
-                        alt={`${product.name} ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
+        {/* Breadcrumb — Westside style */}
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pt-4 pb-6">
+          <nav className="flex items-center gap-2 text-[13px] text-gray-400 tracking-wide">
+            <a href="/" className="hover:text-black transition-colors">Home</a>
+            <span className="text-gray-300">/</span>
+            <span className="text-black font-normal">{product.name}</span>
+          </nav>
+        </div>
 
-              {/* Main Image - Premium Style */}
-              <div className="flex-1">
-                <div 
-                  className="aspect-[3/4] bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden relative group rounded-2xl cursor-zoom-in shadow-2xl border border-gray-200/50"
-                  onClick={() => setIsZoomed(true)}
-                >
-                  {/* Subtle gradient overlay for depth */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/5 via-transparent to-transparent pointer-events-none z-10" />
-                  
-                  <img
-                    src={product.images[selectedImageIndex]}
-                    alt={product.name}
-                    className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110"
-                  />
-                  
-                  {/* Premium glass-morphism buttons */}
-                  <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 flex gap-2 z-20">
-                    <div className="backdrop-blur-md bg-white/80 rounded-full p-1 shadow-lg">
-                      <CompareButton product={product} size="lg" />
-                    </div>
-                    <div className="backdrop-blur-md bg-white/80 rounded-full p-1 shadow-lg">
-                      <WishlistButton product={product} size="lg" />
+        {/* Main Content */}
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pb-20">
+          <div className="flex flex-col lg:flex-row gap-0">
+
+            {/* LEFT — Image Gallery Grid (Westside style: 2-column image grid) */}
+            <div className="lg:w-[62%] xl:w-[64%]">
+              <div className="grid grid-cols-2 gap-[2px]">
+                {product.images.map((img, idx) => (
+                  <motion.div
+                    key={idx}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className="aspect-[3/4] bg-[#f5f5f5] overflow-hidden cursor-pointer group relative"
+                    onClick={() => {
+                      setSelectedImageIndex(idx)
+                      setIsZoomed(true)
+                    }}
+                  >
+                    <img
+                      src={img}
+                      alt={`${product.name} - Image ${idx + 1}`}
+                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                    />
+                  </motion.div>
+                ))}
+                {/* If only 1 image, add a placeholder to keep grid */}
+                {product.images.length === 1 && (
+                  <div className="aspect-[3/4] bg-[#f5f5f5] flex items-center justify-center">
+                    <div className="text-center text-gray-300">
+                      <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
                     </div>
                   </div>
-                  
-                  {/* Premium zoom hint with icon */}
-                  <div className="absolute bottom-6 right-6 backdrop-blur-md bg-black/60 text-white px-4 py-2 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-center gap-2 shadow-xl">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
-                    </svg>
-                    Click to zoom
+                )}
+              </div>
+            </div>
+
+            {/* RIGHT — Product Details (Westside style: sticky sidebar) */}
+            <div className="lg:w-[38%] xl:w-[36%] lg:pl-10 xl:pl-14">
+              <div className="lg:sticky lg:top-32 pt-6 lg:pt-0">
+
+                {/* Brand + Wishlist/Share row */}
+                <div className="flex items-start justify-between mb-1">
+                  <span className="text-[13px] text-gray-500 tracking-[0.15em] uppercase">
+                    {product.brand || 'VSTRA'}
+                  </span>
+                  <div className="flex items-center gap-3">
+                    <WishlistButton product={product} size="md" />
+                    <button className="text-gray-400 hover:text-black transition-colors" title="Share">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                      </svg>
+                    </button>
                   </div>
-                  
-                  {/* Image indicator dots */}
-                  {product.images.length > 1 && (
-                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-20">
-                      {product.images.map((_, idx) => (
-                        <div
-                          key={idx}
-                          className={`h-1.5 rounded-full transition-all duration-300 ${
-                            selectedImageIndex === idx
-                              ? 'w-8 bg-white shadow-lg'
-                              : 'w-1.5 bg-white/50 hover:bg-white/80'
+                </div>
+
+                {/* Product Name */}
+                <h1 className="text-[18px] lg:text-[20px] text-black font-normal leading-snug tracking-wide mb-4">
+                  {product.name}
+                </h1>
+
+                {/* Price */}
+                <div className="flex items-baseline gap-3 mb-1">
+                  <span className="text-[20px] lg:text-[22px] text-black font-normal tracking-wide">
+                    ₹ {product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                  </span>
+                  {product.compareAtPrice && product.compareAtPrice > product.price && (
+                    <span className="text-[14px] text-gray-400 line-through">
+                      ₹ {product.compareAtPrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[11px] text-gray-400 tracking-wide mb-6">
+                  MRP incl. of all taxes
+                </p>
+
+                {/* Divider */}
+                <div className="h-px bg-gray-200 mb-6" />
+
+                {/* Color Selection */}
+                {product.colors && product.colors.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                      <span className="text-[12px] text-gray-500 tracking-[0.15em] uppercase">Colour</span>
+                      <span className="text-[12px] text-black tracking-wide capitalize">— {selectedColor?.name || 'Default'}</span>
+                    </div>
+                    <div className="flex gap-2.5">
+                      {product.colors.map((color) => (
+                        <button
+                          key={color.name}
+                          onClick={() => setSelectedColor(color)}
+                          className={`w-8 h-8 rounded-full transition-all duration-200 ${
+                            selectedColor?.name === color.name
+                              ? 'ring-2 ring-black ring-offset-2'
+                              : 'ring-1 ring-gray-200 hover:ring-gray-400'
                           }`}
+                          style={{ backgroundColor: color.hex }}
+                          title={color.name}
                         />
                       ))}
                     </div>
-                  )}
-                </div>
-
-                {/* Premium Navigation Arrows */}
-                {product.images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() => setSelectedImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))}
-                      className="absolute left-20 sm:left-24 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/90 hover:bg-white p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200/50"
-                    >
-                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
-                      </svg>
-                    </button>
-                    <button
-                      onClick={() => setSelectedImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 backdrop-blur-md bg-white/90 hover:bg-white p-3 rounded-full shadow-2xl transition-all duration-300 hover:scale-110 border border-gray-200/50"
-                    >
-                      <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                      </svg>
-                    </button>
-                  </>
+                  </div>
                 )}
-              </div>
-            </motion.div>
 
-            {/* Zoom Modal */}
-            {isZoomed && (
-              <div 
-                className="fixed inset-0 bg-black/95 z-50 flex items-center justify-center p-4"
-                onClick={() => setIsZoomed(false)}
-              >
-                <button
-                  onClick={() => setIsZoomed(false)}
-                  className="absolute top-4 right-4 text-white bg-black/50 hover:bg-black/70 p-2 rounded-full"
-                >
-                  <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-                
-                <div className="relative max-w-5xl max-h-[90vh] w-full">
-                  <img
-                    src={product.images[selectedImageIndex]}
-                    alt={product.name}
-                    className="w-full h-full object-contain"
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  
-                  {/* Zoom Navigation */}
-                  {product.images.length > 1 && (
-                    <>
+                {/* Size Selection — Westside style */}
+                {product.sizes && product.sizes.length > 0 && (
+                  <div className="mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-[12px] text-gray-500 tracking-[0.15em] uppercase">Size</span>
                       <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))
-                        }}
-                        className="absolute left-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg"
+                        onClick={() => setShowSizeGuide(true)}
+                        className="text-[12px] text-black tracking-[0.1em] uppercase underline underline-offset-4 hover:text-gray-600 transition-colors"
                       >
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
+                        Size Guide
                       </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setSelectedImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))
-                        }}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/90 hover:bg-white p-3 rounded-full shadow-lg"
-                      >
-                        <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                      </button>
-                      
-                      {/* Image counter */}
-                      <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-full text-sm">
-                        {selectedImageIndex + 1} / {product.images.length}
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Details */}
-            <motion.div
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="space-y-4 sm:space-y-6"
-            >
-              <div>
-                <h1 className="text-2xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-4">
-                  {product.name}
-                </h1>
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-4">
-                  <p className="text-2xl sm:text-3xl font-semibold">₹{product.price}</p>
-                  {product.rating > 0 && (
-                    <div className="flex items-center gap-1">
-                      <span className="text-yellow-500">★</span>
-                      <span className="text-sm text-gray-600">
-                        {product.rating} ({product.numReviews} reviews)
-                      </span>
                     </div>
-                  )}
-                </div>
-                <p className="text-gray-600 leading-relaxed">
-                  {product.description}
-                </p>
-              </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {product.sizes.map((size) => (
+                        <button
+                          key={size}
+                          onClick={() => setSelectedSize(size)}
+                          className={`min-w-[48px] h-[48px] flex items-center justify-center text-[13px] tracking-wide transition-all duration-200 border ${
+                            selectedSize === size
+                              ? 'border-black text-black bg-white font-medium'
+                              : 'border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              {/* Size Selection */}
-              {product.sizes && product.sizes.length > 0 && (
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <label className="block text-sm font-semibold">
-                      Size
-                    </label>
+                {/* Quantity */}
+                <div className="mb-6">
+                  <span className="text-[12px] text-gray-500 tracking-[0.15em] uppercase block mb-3">Quantity</span>
+                  <div className="flex items-center border border-gray-200 inline-flex">
                     <button
-                      onClick={() => setShowSizeGuide(true)}
-                      className="text-sm text-purple-600 hover:text-purple-800 font-medium flex items-center gap-1 transition-colors"
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black transition-colors border-r border-gray-200"
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
                       </svg>
-                      Size Guide
+                    </button>
+                    <span className="w-12 h-10 flex items-center justify-center text-[14px] text-black">
+                      {quantity}
+                    </span>
+                    <button
+                      onClick={() => setQuantity(Math.min(10, quantity + 1))}
+                      className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black transition-colors border-l border-gray-200"
+                    >
+                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                      </svg>
                     </button>
                   </div>
-                  <div className="flex gap-3">
-                    {product.sizes.map((size) => (
-                      <motion.button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className={`px-6 py-3 border-2 rounded-lg font-semibold transition-all ${
-                          selectedSize === size
-                            ? 'border-black bg-black text-white shadow-lg'
-                            : 'border-gray-300 hover:border-black'
-                        }`}
-                      >
-                        {size}
-                      </motion.button>
-                    ))}
-                  </div>
                 </div>
-              )}
 
-              {/* Color Selection */}
-              {product.colors && product.colors.length > 0 && (
-                <div>
-                  <label className="block text-sm font-semibold mb-3">
-                    Color
-                  </label>
-                  <div className="flex gap-3">
-                    {product.colors.map((color) => (
-                      <button
-                        key={color.name}
-                        onClick={() => setSelectedColor(color)}
-                        className={`w-12 h-12 rounded-full border-2 transition-all ${
-                          selectedColor?.name === color.name
-                            ? 'border-black scale-110'
-                            : 'border-gray-300'
-                        }`}
-                        style={{ backgroundColor: color.hex }}
-                        title={color.name}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Quantity */}
-              <div>
-                <label className="block text-sm font-semibold mb-3">
-                  Quantity
-                </label>
-                <div className="flex items-center gap-4">
-                  <button
-                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                    className="w-10 h-10 border border-gray-300 hover:border-black transition-colors"
-                  >
-                    -
-                  </button>
-                  <span className="text-lg font-semibold w-12 text-center">
-                    {quantity}
-                  </span>
-                  <button
-                    onClick={() => setQuantity(quantity + 1)}
-                    className="w-10 h-10 border border-gray-300 hover:border-black transition-colors"
-                  >
-                    +
-                  </button>
-                </div>
-              </div>
-
-              {/* Stock Status */}
-              <div>
-                {product.stock > 0 ? (
-                  <p className="text-green-600 text-sm">
-                    In Stock ({product.stock} available)
-                  </p>
-                ) : (
-                  <p className="text-red-600 text-sm">Out of Stock</p>
-                )}
-              </div>
-
-              {/* Add to Cart & Wishlist */}
-              <div className="flex gap-3">
-                <button
+                {/* ADD TO BAG — Westside style: solid black button */}
+                <motion.button
+                  whileTap={{ scale: 0.98 }}
                   onClick={handleAddToCart}
                   disabled={product.stock === 0}
-                  className="flex-1 bg-black text-white py-3 sm:py-4 text-xs sm:text-sm font-semibold tracking-widest uppercase hover:bg-gray-900 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                  className="w-full bg-black text-white py-4 text-[13px] tracking-[0.25em] uppercase font-medium hover:bg-[#1a1a1a] transition-all duration-300 disabled:bg-gray-300 disabled:cursor-not-allowed mb-6"
                 >
-                  {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}
-                </button>
-                <div className="flex items-center">
-                  <WishlistButton product={product} size="lg" showLabel />
-                </div>
-              </div>
+                  {product.stock > 0 ? 'ADD TO BAG' : 'OUT OF STOCK'}
+                </motion.button>
 
-              {/* Product Details */}
-              <div className="border-t border-gray-200 pt-6 space-y-4">
-                <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer font-semibold">
-                    <span>Product Details</span>
-                    <svg
-                      className="w-5 h-5 transition-transform group-open:rotate-180"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                {/* Stock indicator — subtle */}
+                {product.stock > 0 && product.stock < 15 && (
+                  <p className="text-[11px] text-gray-400 tracking-wide mb-6">
+                    Only {product.stock} left in stock
+                  </p>
+                )}
+
+                {/* Service icons — Westside style */}
+                <div className="flex items-center justify-start gap-10 mb-8 pt-2">
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
-                  </summary>
-                  <div className="mt-4 text-sm text-gray-600 space-y-2">
-                    <p>Category: {product.category}</p>
-                    {product.subcategory && <p>Subcategory: {product.subcategory}</p>}
+                    <span className="text-[10px] text-gray-500 tracking-wide">Free shipping</span>
                   </div>
-                </details>
-                <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer font-semibold">
-                    <span>Shipping & Returns</span>
-                    <svg
-                      className="w-5 h-5 transition-transform group-open:rotate-180"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
-                  </summary>
-                  <div className="mt-4 text-sm text-gray-600 space-y-2">
-                    <p>Free shipping on orders over $100</p>
-                    <p>30-day return policy</p>
-                    <p>Ships within 2-3 business days</p>
+                    <span className="text-[10px] text-gray-500 tracking-wide">Easy returns</span>
                   </div>
-                </details>
+                  <div className="flex flex-col items-center text-center gap-2">
+                    <svg className="w-7 h-7 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                    </svg>
+                    <span className="text-[10px] text-gray-500 tracking-wide">Fresh Fashion</span>
+                  </div>
+                </div>
+
+                {/* Accordion Sections — Westside style */}
+                <div className="border-t border-gray-200">
+
+                  {/* Product Details and Overview */}
+                  <div className="border-b border-gray-200">
+                    <button
+                      onClick={() => toggleSection('details')}
+                      className="w-full flex items-center justify-between py-5 text-left"
+                    >
+                      <span className="text-[14px] text-black tracking-wide">Product Details and Overview</span>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${openSection === 'details' ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <AnimatePresence>
+                      {openSection === 'details' && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-6 space-y-4">
+                            {/* Description */}
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              {product.description}
+                            </p>
+
+                            {/* Specs — key: value style like Westside */}
+                            <div className="space-y-3 pt-2">
+                              {product.sku && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">SKU:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.sku}</span>
+                                </div>
+                              )}
+                              {product.fit && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Fit:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.fit}</span>
+                                </div>
+                              )}
+                              {product.material && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Fabric Composition:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.material}</span>
+                                </div>
+                              )}
+                              {product.pattern && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Pattern:</span>
+                                  <span className="text-[13px] text-black font-medium capitalize">{product.pattern}</span>
+                                </div>
+                              )}
+                              {product.neckType && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Neck Type:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.neckType}</span>
+                                </div>
+                              )}
+                              {product.sleeveType && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Sleeve Type:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.sleeveType}</span>
+                                </div>
+                              )}
+                              {product.occasion && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Occasion:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.occasion}</span>
+                                </div>
+                              )}
+                              {product.fabricCare && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Care Instruction:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.fabricCare}</span>
+                                </div>
+                              )}
+                              {product.idealFor && (
+                                <div className="flex">
+                                  <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Ideal For:</span>
+                                  <span className="text-[13px] text-black font-medium">{product.idealFor}</span>
+                                </div>
+                              )}
+                              <div className="flex">
+                                <span className="text-[13px] text-gray-400 w-44 flex-shrink-0">Country Of Origin:</span>
+                                <span className="text-[13px] text-black font-medium">{product.countryOfOrigin || 'India'}</span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Delivery & Return */}
+                  <div className="border-b border-gray-200">
+                    <button
+                      onClick={() => toggleSection('delivery')}
+                      className="w-full flex items-center justify-between py-5 text-left"
+                    >
+                      <span className="text-[14px] text-black tracking-wide">Delivery & Return</span>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${openSection === 'delivery' ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <AnimatePresence>
+                      {openSection === 'delivery' && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-6 space-y-3">
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              Free standard shipping on all orders above ₹999. Orders are typically delivered within 5-7 business days.
+                            </p>
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              We accept returns within 15 days of delivery. Items must be unworn, unwashed, and with all original tags attached.
+                            </p>
+                            <p className="text-[13px] text-gray-600 leading-relaxed">
+                              {product.returnPolicy || '7 Days Replacement Policy'}
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Contact Us */}
+                  <div className="border-b border-gray-200">
+                    <button
+                      onClick={() => toggleSection('contact')}
+                      className="w-full flex items-center justify-between py-5 text-left"
+                    >
+                      <span className="text-[14px] text-black tracking-wide">Contact Us</span>
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${openSection === 'contact' ? 'rotate-180' : ''}`}
+                        fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+                    <AnimatePresence>
+                      {openSection === 'contact' && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: 'easeInOut' }}
+                          className="overflow-hidden"
+                        >
+                          <div className="pb-6 space-y-2">
+                            <p className="text-[13px] text-gray-600">
+                              For any product-related queries, reach out to us:
+                            </p>
+                            <p className="text-[13px] text-gray-600">
+                              Email: <span className="text-black">support@vstra.com</span>
+                            </p>
+                            <p className="text-[13px] text-gray-600">
+                              Phone: <span className="text-black">+91 1800-000-0000</span>
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                </div>
+
               </div>
-            </motion.div>
+            </div>
           </div>
 
-          {/* Trust Badges */}
-          <div className="mt-16">
-            <TrustBadges />
+          {/* Similar Products */}
+          <div className="mt-16 lg:mt-24 border-t border-gray-200 pt-16 relative">
+            <SimilarProducts currentProductId={product._id} category={product.category} />
           </div>
 
           {/* Reviews Section */}
-          <div className="mt-20">
+          <div className="mt-16 lg:mt-24 border-t border-gray-200 pt-16">
             <ReviewSection productId={product._id} />
           </div>
         </div>
       </main>
 
-      <SizeGuide 
-        isOpen={showSizeGuide} 
+      {/* Zoom Modal — clean, editorial */}
+      <AnimatePresence>
+        {isZoomed && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-white z-[9999] flex items-center justify-center"
+            onClick={() => setIsZoomed(false)}
+          >
+            {/* Close button */}
+            <button
+              onClick={() => setIsZoomed(false)}
+              className="absolute top-6 right-6 text-black hover:text-gray-500 transition-colors z-10"
+            >
+              <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Main image */}
+            <div className="relative w-full h-full flex items-center justify-center p-12">
+              <img
+                src={product.images[selectedImageIndex]}
+                alt={product.name}
+                className="max-w-full max-h-full object-contain"
+                onClick={(e) => e.stopPropagation()}
+              />
+
+              {/* Navigation arrows */}
+              {product.images.length > 1 && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedImageIndex((prev) => (prev === 0 ? product.images.length - 1 : prev - 1))
+                    }}
+                    className="absolute left-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-gray-200 hover:border-black transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setSelectedImageIndex((prev) => (prev === product.images.length - 1 ? 0 : prev + 1))
+                    }}
+                    className="absolute right-6 top-1/2 -translate-y-1/2 w-12 h-12 flex items-center justify-center border border-gray-200 hover:border-black transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  {/* Image counter */}
+                  <div className="absolute bottom-6 left-1/2 -translate-x-1/2 text-[12px] text-gray-400 tracking-[0.2em]">
+                    {selectedImageIndex + 1} / {product.images.length}
+                  </div>
+                </>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <SizeGuide
+        isOpen={showSizeGuide}
         onClose={() => setShowSizeGuide(false)}
         category={product.category}
       />

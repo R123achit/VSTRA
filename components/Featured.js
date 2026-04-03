@@ -1,226 +1,98 @@
-﻿import { motion } from 'framer-motion'
-import { useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import WishlistButton from './WishlistButton'
-import CompareButton from './CompareButton'
 import { useCartStore } from '../store/useStore'
 import toast from 'react-hot-toast'
 import axios from 'axios'
 
-function ProductCard({ product, index }) {
-  const [isHovered, setIsHovered] = useState(false)
-  const cardRef = useRef(null)
-  const [rotateX, setRotateX] = useState(0)
-  const [rotateY, setRotateY] = useState(0)
+function FeaturedCard({ product, index }) {
+  const [imageLoaded, setImageLoaded] = useState(false)
   const addToCart = useCartStore((state) => state.addToCart)
-
-  const handleMouseMove = (e) => {
-    if (!cardRef.current) return
-    const card = cardRef.current
-    const rect = card.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
-    const centerX = rect.width / 2
-    const centerY = rect.height / 2
-    const rotateXValue = ((y - centerY) / centerY) * -15
-    const rotateYValue = ((x - centerX) / centerX) * 15
-    
-    setRotateX(rotateXValue)
-    setRotateY(rotateYValue)
-  }
-
-  const handleMouseLeave = () => {
-    setIsHovered(false)
-    setRotateX(0)
-    setRotateY(0)
-  }
 
   const handleQuickAdd = (e) => {
     e.preventDefault()
     e.stopPropagation()
-    const defaultSize = product.sizes?.[0] || 'M'
-    const defaultColor = product.colors?.[0] || { name: 'Default', hex: '#000000' }
-    
     addToCart({
       _id: product._id,
       name: product.name,
       price: product.price,
       image: product.images[0],
-      size: defaultSize,
-      color: defaultColor.name,
+      size: product.sizes?.[0] || 'M',
+      color: product.colors?.[0]?.name || 'Default',
     })
-    
-    toast.success(`${product.name} added to cart!`)
+    toast.success('Added to bag', {
+      style: { background: '#000', color: '#fff', fontSize: '13px', letterSpacing: '0.5px' },
+      iconTheme: { primary: '#fff', secondary: '#000' },
+    })
   }
 
   return (
     <motion.div
-      ref={cardRef}
-      initial={{ opacity: 0, y: 30 }}
+      initial={{ opacity: 0, y: 15 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ delay: index * 0.1, duration: 0.5 }}
-      onMouseMove={handleMouseMove}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={handleMouseLeave}
-      style={{
-        transformStyle: 'preserve-3d',
-        perspective: '1000px',
-      }}
-      className="group relative"
+      transition={{ delay: index * 0.06, duration: 0.4 }}
+      className="group"
     >
-      <motion.div
-        animate={{
-          rotateX: rotateX,
-          rotateY: rotateY,
-          scale: isHovered ? 1.05 : 1,
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-        style={{
-          transformStyle: 'preserve-3d',
-        }}
-      >
-        <Link href={`/product/${product._id}`}>
-          <div 
-            className="relative overflow-hidden bg-gray-100 mb-6 aspect-[3/4] cursor-pointer rounded-lg"
-            style={{
-              transform: 'translateZ(50px)',
-              boxShadow: isHovered 
-                ? '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 30px rgba(212, 175, 55, 0.4)' 
-                : '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-              transition: 'box-shadow 0.3s ease',
-            }}
-          >
-            <motion.img
-              src={product.images[0]}
-              alt={product.name}
-              className="w-full h-full object-cover"
-              animate={{
-                scale: isHovered ? 1.1 : 1,
-              }}
-              transition={{ duration: 0.5 }}
-            />
-
-            <motion.div 
-              className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent"
-              animate={{ opacity: isHovered ? 1 : 0 }}
-              transition={{ duration: 0.3 }}
-            />
-
-            {/* Shine effect */}
-            <motion.div
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-[#F4E4C1]/30 to-transparent"
-              animate={{
-                x: isHovered ? ['0%', '100%'] : '-100%',
-              }}
-              transition={{ duration: 0.6 }}
-              style={{ transform: 'translateZ(60px)' }}
-            />
-
-            <motion.div 
-              className="absolute top-4 right-4 z-10 flex gap-2"
-              animate={{ 
-                opacity: isHovered ? 1 : 0,
-                scale: isHovered ? 1 : 0.8,
-              }}
-              transition={{ duration: 0.2 }}
-              style={{ transform: 'translateZ(80px)' }}
-            >
-              <CompareButton product={product} size="md" />
-              <WishlistButton product={product} size="md" />
-            </motion.div>
-
-            {product.stock < 10 && product.stock > 0 && (
-              <motion.div 
-                className="absolute top-4 left-4 bg-red-600 text-white px-3 py-1 text-xs font-semibold rounded"
-                style={{ transform: 'translateZ(70px)' }}
-                animate={{
-                  scale: isHovered ? 1.1 : 1,
-                }}
-              >
-                Only {product.stock} left
-              </motion.div>
-            )}
-
-            {/* 3D Border glow */}
-            <motion.div
-              className="absolute inset-0 rounded-lg pointer-events-none"
-              animate={{
-                boxShadow: isHovered 
-                  ? 'inset 0 0 30px rgba(212, 175, 55, 0.5)' 
-                  : 'inset 0 0 0px rgba(212, 175, 55, 0)',
-              }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
-        </Link>
-
-        <motion.div 
-          className="flex flex-col space-y-3 p-4"
-          style={{ transform: 'translateZ(40px)' }}
-        >
-          {/* Product Name */}
-          <Link href={`/product/${product._id}`}>
-            <motion.h3 
-              className="text-lg sm:text-xl font-semibold tracking-tight text-black cursor-pointer line-clamp-2 min-h-[3.5rem]"
-              whileHover={{ color: '#D4AF37', scale: 1.02 }}
-              transition={{ duration: 0.2 }}
-            >
-              {product.name}
-            </motion.h3>
-          </Link>
-          
-          {/* Price Section */}
-          <div className="flex items-baseline gap-2 py-2">
-            <motion.p 
-              className="text-xl sm:text-2xl font-bold text-black"
-              animate={{ scale: isHovered ? 1.05 : 1 }}
-              transition={{ duration: 0.2 }}
-            >
-              ₹{product.price}
-            </motion.p>
-            {product.compareAtPrice && (
-              <p className="text-sm text-gray-400 line-through">
-                ₹{product.compareAtPrice}
-              </p>
-            )}
-          </div>
-
-          {/* Rating Section */}
-          {product.rating > 0 && (
-            <motion.div 
-              className="flex items-center gap-1 py-1"
-              animate={{ y: isHovered ? -3 : 0 }}
-              transition={{ duration: 0.2 }}
-            >
-              <span className="text-yellow-500 text-base">★</span>
-              <span className="text-sm text-gray-600">
-                {product.rating} ({product.numReviews} reviews)
-              </span>
-            </motion.div>
+      <Link href={`/product/${product._id}`}>
+        <div className="relative aspect-[3/4] overflow-hidden bg-[#f5f5f5] cursor-pointer">
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-100 animate-pulse" />
           )}
+          <img
+            src={product.images[0]}
+            alt={product.name}
+            onLoad={() => setImageLoaded(true)}
+            className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            }`}
+          />
 
-          {/* Add to Cart Button */}
-          <motion.button
-            onClick={handleQuickAdd}
-            className="w-full bg-black text-white py-3 px-4 md:py-4 text-sm md:text-base font-semibold tracking-wider uppercase rounded-lg overflow-hidden relative shadow-lg hover:shadow-xl mt-auto min-h-[48px] md:min-h-[52px] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-            whileHover={{ 
-              scale: 1.02,
-              backgroundColor: '#1f2937',
-            }}
-            whileTap={{ scale: 0.98 }}
-            style={{ transform: 'translateZ(60px)' }}
-          >
-            <motion.span
-              className="absolute inset-0 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-800"
-              initial={{ x: '-100%' }}
-              whileHover={{ x: '0%' }}
-              transition={{ duration: 0.3 }}
-            />
-            <span className="relative z-10">Add to Cart</span>
-          </motion.button>
-        </motion.div>
-      </motion.div>
+          {/* Wishlist */}
+          <div className="absolute top-3 right-3 z-10">
+            <WishlistButton product={product} size="md" />
+          </div>
+
+          {/* Quick Add on hover */}
+          <div className="absolute bottom-0 left-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <button
+              onClick={handleQuickAdd}
+              disabled={product.stock === 0}
+              className="w-full bg-black/90 text-white py-3 text-[11px] tracking-[0.2em] uppercase hover:bg-black transition-colors disabled:bg-gray-400"
+            >
+              {product.stock === 0 ? 'Sold Out' : 'Quick Add'}
+            </button>
+          </div>
+        </div>
+      </Link>
+
+      {/* Info */}
+      <div className="pt-3 pb-1">
+        <p className="text-[11px] text-gray-400 tracking-[0.08em] uppercase mb-0.5">
+          {product.brand || 'VSTRA'}
+        </p>
+        <Link href={`/product/${product._id}`}>
+          <h3 className="text-[13px] text-black leading-snug cursor-pointer hover:underline underline-offset-2 line-clamp-2 mb-1.5">
+            {product.name}
+          </h3>
+        </Link>
+        {product.colors && product.colors.length > 1 && (
+          <div className="flex gap-1 mb-1.5">
+            {product.colors.slice(0, 4).map((color) => (
+              <span
+                key={color.name}
+                className="w-3 h-3 border border-gray-200"
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
+            ))}
+          </div>
+        )}
+        <p className="text-[14px] text-black">
+          ₹ {product.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+        </p>
+      </div>
     </motion.div>
   )
 }
@@ -234,53 +106,53 @@ export default function Featured() {
 
   const fetchProducts = async () => {
     try {
-      const response = await axios.get(`/api/products?featured=true&limit=6&_t=${Date.now()}`)
+      const response = await axios.get(`/api/products?featured=true&limit=8&_t=${Date.now()}`)
       setProducts(response.data.data)
     } catch (error) {
       console.error('Error fetching products:', error)
     }
   }
 
-  return (
-    <section id="featured" className="relative py-32 px-6 lg:px-12 bg-white overflow-hidden">
-      <div className="max-w-7xl mx-auto relative z-10">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="text-center mb-20"
-        >
-          <h2 className="text-5xl md:text-7xl font-bold tracking-tighter mb-4">
-            Featured
-          </h2>
-          <p className="text-gray-600 text-lg tracking-wide">
-            Handpicked essentials for the season
-          </p>
-        </motion.div>
+  if (products.length === 0) return null
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+  return (
+    <section className="bg-white py-20 px-4 lg:px-8">
+      <div className="max-w-[1440px] mx-auto">
+
+        {/* Section header */}
+        <div className="flex items-end justify-between mb-10 border-b border-gray-100 pb-4">
+          <div>
+            <h2 className="text-[13px] tracking-[0.3em] uppercase text-gray-400 mb-2">
+              Curated
+            </h2>
+            <p className="text-2xl md:text-3xl text-black font-normal tracking-tight"
+              style={{ fontFamily: 'Georgia, "Times New Roman", serif' }}
+            >
+              Handpicked for you
+            </p>
+          </div>
+          <Link href="/shop">
+            <span className="text-[12px] tracking-[0.2em] uppercase text-black border-b border-black pb-0.5 cursor-pointer hover:text-gray-500 hover:border-gray-500 transition-colors hidden md:inline">
+              View All
+            </span>
+          </Link>
+        </div>
+
+        {/* Product grid — 4 columns like Westside */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-[2px] gap-y-8">
           {products.map((product, index) => (
-            <ProductCard key={product._id} product={product} index={index} />
+            <FeaturedCard key={product._id} product={product} index={index} />
           ))}
         </div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mt-16"
-        >
+        {/* Mobile CTA */}
+        <div className="text-center mt-10 md:hidden">
           <Link href="/shop">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="bg-black text-white px-12 py-4 md:py-5 text-sm md:text-base font-semibold tracking-widest uppercase hover:bg-gray-900 transition-all duration-300 cursor-pointer rounded-lg shadow-lg hover:shadow-xl min-h-[52px] md:min-h-[56px] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-            >
+            <span className="text-[12px] tracking-[0.2em] uppercase text-black border-b border-black pb-0.5 cursor-pointer">
               View All Products
-            </motion.button>
+            </span>
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

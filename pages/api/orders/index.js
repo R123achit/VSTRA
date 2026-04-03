@@ -21,6 +21,7 @@ async function handler(req, res) {
       // Transform orders to match frontend expectations
       const transformedOrders = orders.map(order => ({
         _id: order._id,
+        orderId: order.orderId || order._id.toString().slice(-8).toUpperCase(),
         createdAt: order.createdAt,
         status: order.status.charAt(0).toUpperCase() + order.status.slice(1), // Capitalize status
         totalAmount: order.totalPrice,
@@ -89,21 +90,21 @@ async function handler(req, res) {
         emailUser: process.env.EMAIL_USER
       })
       
-      // Send confirmation email (don't wait for it)
+      // Send confirmation email immediately and wait for it
       if (user && user.email) {
-        sendOrderConfirmationEmail(order, user.email, user.name)
-          .then((result) => {
-            if (result.success) {
-              console.log('✅ Order confirmation email sent successfully to:', user.email)
-              console.log('✅ Message ID:', result.messageId)
-            } else {
-              console.error('❌ Failed to send email:', result.error)
-            }
-          })
-          .catch((error) => {
-            console.error('❌ Email sending error:', error.message)
-            console.error('❌ Full error:', error)
-          })
+        try {
+          const emailResult = await sendOrderConfirmationEmail(order, user.email, user.name)
+          if (emailResult.success) {
+            console.log('✅ Order confirmation email sent successfully to:', user.email)
+            console.log('✅ Message ID:', emailResult.messageId)
+          } else {
+            console.error('❌ Failed to send email:', emailResult.error)
+          }
+        } catch (error) {
+          console.error('❌ Email sending error:', error.message)
+          console.error('❌ Full error:', error)
+          // Don't fail the order if email fails
+        }
       } else {
         console.error('❌ No user email found for user ID:', req.userId)
       }

@@ -1,138 +1,159 @@
-import { motion } from 'framer-motion'
-import { useState, useEffect } from 'react'
-import Button3D from './Button3D'
-import WeatherRecommendations from './WeatherRecommendations'
+import { motion, AnimatePresence } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import Link from 'next/link'
 
 export default function Hero() {
-  const images = [
-  'https://images.pexels.com/photos/8157980/pexels-photo-8157980.jpeg',
-    'https://images.pexels.com/photos/351127/pexels-photo-351127.jpeg',
-    'https://images.pexels.com/photos/5076726/pexels-photo-5076726.jpeg',
-     'https://images.pexels.com/photos/3155666/pexels-photo-3155666.jpeg',
-     'https://images.pexels.com/photos/3756686/pexels-photo-3756686.jpeg',
-     'https://images.pexels.com/photos/27197359/pexels-photo-27197359.jpeg',
-     'https://images.pexels.com/photos/20304275/pexels-photo-20304275.jpeg',
-     'https://images.pexels.com/photos/12789164/pexels-photo-12789164.jpeg',
-     'https://images.pexels.com/photos/31277421/pexels-photo-31277421.jpeg',
-     'https://images.pexels.com/photos/28217319/pexels-photo-28217319.jpeg',
-     'https://images.pexels.com/photos/1089637/pexels-photo-1089637.jpeg',
-     'https://images.pexels.com/photos/8156203/pexels-photo-8156203.jpeg',
-     'https://images.pexels.com/photos/12932402/pexels-photo-12932402.jpeg',
+  const slides = [
+    {
+      video: '/videos/139997-774012678.mp4',
+      duration: 23000, // 23 seconds
+      headline: (
+        <>
+          THE<br />TRAVEL EDIT
+        </>
+      ),
+      cta: 'SHOP WOMAN',
+      ctaLink: '/shop?category=women',
+      label: 'Woman'
+    },
+    {
+      video: '/videos/istockphoto-1323005489-640_adpp_is.mp4',
+      duration: 5000, // fallback duration
+      headline: (
+        <>
+          THE<br />SUMMER DROP
+        </>
+      ),
+      cta: 'SHOP MAN',
+      ctaLink: '/shop?category=men',
+      label: 'Man'
+    },
+    {
+      video: '/videos/fashion-hero.mp4',
+      duration: 5000, // fallback duration
+      headline: (
+        <>
+          NEW<br />COLLECTION
+        </>
+      ),
+      cta: 'SHOP NOW',
+      ctaLink: '/shop',
+      label: 'Fashion'
+    }
   ]
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0)
+  const [currentSlide, setCurrentSlide] = useState(0)
+  const [offersBarVisible, setOffersBarVisible] = useState(true)
+  const videoRef = useRef(null)
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length)
-    }, 6000) // Change image every 6 seconds
+    const handleOffersBarVisibility = (e) => setOffersBarVisible(e.detail.visible)
+    window.addEventListener('offersBarVisibility', handleOffersBarVisibility)
+    return () => window.removeEventListener('offersBarVisibility', handleOffersBarVisibility)
+  }, [])
 
-    return () => clearInterval(interval)
-  }, [images.length])
+  useEffect(() => {
+    // Wait for video to end before moving to next slide
+    const handleVideoEnd = () => {
+      setCurrentSlide((prev) => (prev + 1) % slides.length)
+    }
+
+    const videoElement = videoRef.current
+    if (videoElement) {
+      videoElement.addEventListener('ended', handleVideoEnd)
+      return () => videoElement.removeEventListener('ended', handleVideoEnd)
+    }
+  }, [currentSlide, slides.length])
+
+  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length)
+  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
+
   return (
-    <>
-      <section className="relative h-screen w-full bg-black text-white overflow-hidden">
-        {/* Background Image Slideshow */}
-        <div className="absolute inset-0 z-0">
-        {images.map((image, index) => (
-          <div
-            key={index}
-            className="absolute inset-0 w-full h-full transition-opacity duration-1000"
-            style={{
-              backgroundImage: `url(${image})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-              backgroundRepeat: 'no-repeat',
-              filter: 'brightness(0.6)',
-              opacity: currentImageIndex === index ? 1 : 0,
-              zIndex: -1
-            }}
-          />
-        ))}
-        
-        {/* Dark Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" style={{ zIndex: -1 }} />
-      </div>
-
-      {/* Content */}
-      <div className="relative z-30 h-full flex flex-col items-center justify-center px-6">
-        <div className="text-center max-w-5xl">
-          <motion.h1 
-            className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-bold tracking-tighter leading-none mb-6"
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-          >
-            VSTRA
-          </motion.h1>
-          
-          <motion.p 
-            className="text-lg sm:text-xl md:text-3xl font-light tracking-wide mb-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            Redefine Your Style
-          </motion.p>
-          
-          <motion.p 
-            className="text-xs sm:text-sm md:text-lg text-gray-300 font-light tracking-wider mb-8 sm:mb-12 px-4"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-          >
-            Premium clothing crafted for modern elegance
-          </motion.p>
-
+    <section 
+      className="relative w-full h-screen overflow-hidden transition-all duration-300"
+    >
+      <div className="relative w-full h-full group">
+        <AnimatePresence mode="popLayout" initial={false}>
           <motion.div
+            key={currentSlide}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+            className="absolute inset-0 w-full h-full"
           >
-            <Button3D
-              onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}
-              variant="secondary"
-            >
-              Explore Collection
-            </Button3D>
+            {slides[currentSlide].video ? (
+              <video
+                ref={videoRef}
+                key={slides[currentSlide].video}
+                src={slides[currentSlide].video}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover object-center"
+              />
+            ) : (
+              <img
+                src={slides[currentSlide].image}
+                alt="Hero Slide"
+                className="w-full h-full object-cover object-center"
+              />
+            )}
+            {/* Subtle Gradient for Text Optionality */}
+            <div className="absolute inset-0 bg-black/10"></div>
           </motion.div>
+        </AnimatePresence>
 
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.5 }}
-            className="mt-12 sm:mt-16 flex flex-wrap justify-center gap-8 sm:gap-12"
-          >
-            {[
-              { value: '500+', label: 'Products' },
-              { value: '50K+', label: 'Customers' },
-              { value: '4.9', label: 'Rating' }
-            ].map((stat, i) => (
-              <div key={i} className="text-center">
-                <div className="text-2xl sm:text-3xl md:text-4xl font-bold text-white">
-                  {stat.value}
-                </div>
-                <div className="text-xs sm:text-sm text-gray-400 mt-1">{stat.label}</div>
-              </div>
-            ))}
-          </motion.div>
+        {/* Text Area (Minimalistic) */}
+        <div className="absolute top-[45%] -translate-y-1/2 left-[12%] md:left-[15%] lg:left-[18%] flex flex-col items-center md:items-center text-center text-white p-4 drop-shadow-md z-10 w-full max-w-[500px]">
+          <h1 className="text-[54px] md:text-[72px] lg:text-[85px] leading-[1.05] font-light tracking-wide mb-8">
+            {slides[currentSlide].headline}
+          </h1>
+          <Link href={slides[currentSlide].ctaLink}>
+            <button className="text-white text-[13px] tracking-[0.2em] font-medium uppercase hover:text-gray-300 transition-colors duration-300 select-none">
+              {slides[currentSlide].cta}
+            </button>
+          </Link>
         </div>
 
-        <div className="absolute bottom-12 cursor-pointer" onClick={() => document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })}>
-          <div className="w-6 h-10 border-2 border-white rounded-full flex items-start justify-center p-2">
-            <div className="w-1 h-2 bg-white rounded-full animate-bounce" />
+        {/* Vertical Slider Navigation (Left Side) */}
+        <div className="absolute left-8 bottom-12 flex flex-col items-start gap-4 z-20">
+          <div className="origin-top-left -rotate-90 translate-y-[60px] translate-x-[4px] w-[100px] text-[13px] tracking-[0.1em] text-white font-medium">
+            {slides[currentSlide].label}
           </div>
-          <p className="text-xs mt-2 text-center tracking-wider">SCROLL</p>
+          <div className="flex flex-col gap-1 mt-[80px]">
+            {slides.map((_, idx) => (
+              <button
+                key={idx}
+                onClick={() => setCurrentSlide(idx)}
+                className={`w-2.5 h-2.5 transition-all duration-300 flex items-center justify-center`}
+              >
+                <div className={`transition-all duration-300 ${
+                  currentSlide === idx ? 'w-2.5 h-2.5 bg-white' : 'w-1.5 h-1.5 bg-white/50 hover:bg-white/80'
+                }`} />
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
-    </section>
 
-    {/* Weather-Based Recommendations Section */}
-    <section className="bg-vstra-light py-12 px-6 lg:px-12">
-      <div className="max-w-7xl mx-auto">
-        <WeatherRecommendations />
+        {/* Navigation Arrows (Right Side) */}
+        <button 
+          onClick={prevSlide}
+          className="absolute right-0 top-[45%] -translate-y-1/2 text-white bg-white/20 hover:bg-white/40 backdrop-blur-sm p-2 rounded-l-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <button 
+          onClick={nextSlide}
+          className="absolute right-0 top-[55%] -translate-y-1/2 text-white bg-white/20 hover:bg-white/40 backdrop-blur-sm p-2 rounded-l-md opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        >
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </section>
-    </>
   )
 }

@@ -2,35 +2,18 @@ import { motion } from 'framer-motion'
 
 export default function Footer() {
   return (
-    <footer className="bg-black text-white py-20 px-6 lg:px-12">
-      <div className="max-w-7xl mx-auto">
-        {/* Newsletter Section */}
-        <div className="border-b border-gray-800 pb-16 mb-16">
-          <div className="max-w-2xl mx-auto text-center">
-            <motion.h3
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              className="text-3xl md:text-5xl font-bold tracking-tighter mb-4"
-            >
-              Stay Updated
-            </motion.h3>
-            <motion.p
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-[#A0A0A0] mb-8 tracking-wide"
-            >
-              Subscribe to receive exclusive offers and latest collections
-            </motion.p>
+    <footer className="bg-[#1a1a1a] text-white">
+      {/* Newsletter Section */}
+      <div className="bg-[#252525] py-8 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <h3 className="text-lg font-semibold mb-1">SIGN UP FOR VSTRA UPDATES</h3>
+              <p className="text-sm text-gray-400">Be the first to know about our new arrivals, exclusive offers and more</p>
+            </div>
             
-            <motion.form
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.2 }}
-              className="flex flex-col sm:flex-row gap-4 max-w-md mx-auto"
+            <form
+              className="flex w-full md:w-auto gap-2"
               onSubmit={(e) => {
                 e.preventDefault()
                 const email = e.target.email.value
@@ -40,138 +23,41 @@ export default function Footer() {
                 }
               }}
             >
-              <motion.input
+              <input
                 type="email"
                 name="email"
-                placeholder="Enter your email"
+                placeholder="Enter your email address"
                 required
-                whileFocus={{ scale: 1.02 }}
-                className="flex-1 bg-white/10 backdrop-blur-sm border-2 border-white/20 rounded-full px-6 py-4 text-white placeholder-gray-400 focus:outline-none focus:border-white focus:bg-white/20 hover:border-white/40 transition-all duration-300"
+                className="flex-1 md:w-80 bg-white text-black px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-white"
               />
-              <motion.button
+              <button
                 type="submit"
-                whileHover={{ scale: 1.05, backgroundColor: '#ffffff', color: '#000000' }}
-                whileTap={{ scale: 0.95 }}
-                className="bg-white text-black px-8 py-4 text-sm font-semibold tracking-widest uppercase rounded-full transition-all duration-300 cursor-pointer hover:shadow-lg"
+                className="bg-white text-black px-6 py-2.5 text-sm font-semibold hover:bg-gray-200 transition-colors"
               >
-                Subscribe
-              </motion.button>
-            </motion.form>
+                SUBSCRIBE
+              </button>
+            </form>
           </div>
         </div>
+      </div>
 
-        {/* Footer Links - FIXED: Increased contrast for better readability */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-10 lg:gap-12 mb-16">
-          {/* Shop Column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.1 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
-              </svg>
-              <h4 className="text-base font-bold tracking-wider uppercase text-[#A0A0A0]">Shop</h4>
-            </div>
-            <ul className="space-y-3.5">
-              {['Men', 'Women', 'New Arrivals', 'Accessories', 'Sale'].map((item, index) => (
-                <motion.li
-                  key={item}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.1 + index * 0.05 }}
-                >
-                  <motion.a
-                    href="#categories"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })
-                    }}
-                    whileHover={{ x: 5, color: '#ffffff' }}
-                    className="text-[#CCCCCC] hover:text-white transition-all duration-300 text-sm cursor-pointer inline-flex items-center gap-2 group"
-                  >
-                    <span className="w-1 h-1 bg-gray-600 rounded-full group-hover:bg-white transition-colors" />
-                    {item}
-                  </motion.a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
+      {/* Main Footer Content */}
+      <div className="max-w-7xl mx-auto py-12 px-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-8 mb-12">
 
-          {/* Company Column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.2 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-              </svg>
-              <h4 className="text-base font-bold tracking-wider uppercase text-[#A0A0A0]">Company</h4>
-            </div>
-            <ul className="space-y-3.5">
-              {['About Us', 'Careers', 'Sustainability', 'Press', 'Contact'].map((item, index) => (
-                <motion.li
-                  key={item}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.2 + index * 0.05 }}
-                >
-                  <motion.a
-                    href="#story"
-                    onClick={(e) => {
-                      e.preventDefault()
-                      document.getElementById('story')?.scrollIntoView({ behavior: 'smooth' })
-                    }}
-                    whileHover={{ x: 5, color: '#ffffff' }}
-                    className="text-[#CCCCCC] hover:text-white transition-all duration-300 text-sm cursor-pointer inline-flex items-center gap-2 group"
-                  >
-                    <span className="w-1 h-1 bg-gray-600 rounded-full group-hover:bg-white transition-colors" />
-                    {item}
-                  </motion.a>
-                </motion.li>
-              ))}
-            </ul>
-          </motion.div>
-
-          {/* Support Column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.3 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <h4 className="text-base font-bold tracking-wider uppercase text-[#A0A0A0]">Support</h4>
-            </div>
-            <ul className="space-y-3.5">
+          {/* Customer Service */}
+          <div>
+            <h4 className="text-sm font-semibold mb-4 uppercase">Customer Service</h4>
+            <ul className="space-y-2.5">
               {[
-                { label: 'FAQ', href: '#', onClick: () => alert('FAQ\n\nThis would navigate to the FAQ page.') },
-                { label: 'Shipping', href: '#', onClick: () => alert('Shipping\n\nThis would navigate to the shipping page.') },
-                { label: 'Returns & Exchanges', href: '/returns' },
-                { label: 'My Orders', href: '/orders' },
-                { label: 'Size Guide', href: '#', onClick: () => alert('Size Guide\n\nThis would navigate to the size guide page.') }
-              ].map((item, index) => (
-                <motion.li
-                  key={item.label}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.3 + index * 0.05 }}
-                >
-                  <motion.a
+                { label: 'Contact Us', href: '#', onClick: () => alert('Contact Us\n\nEmail: support@vstra.com\nPhone: 1800-XXX-XXXX') },
+                { label: 'Track Order', href: '/orders' },
+                { label: 'Return Order', href: '/returns' },
+                { label: 'Cancel Order', href: '/orders' },
+                { label: 'FAQ', href: '#', onClick: () => alert('FAQ\n\nThis would navigate to the FAQ page.') }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a
                     href={item.href}
                     onClick={(e) => {
                       if (item.onClick) {
@@ -179,140 +65,220 @@ export default function Footer() {
                         item.onClick()
                       }
                     }}
-                    whileHover={{ x: 5, color: '#ffffff' }}
-                    className="text-[#CCCCCC] hover:text-white transition-all duration-300 text-sm cursor-pointer inline-flex items-center gap-2 group"
+                    className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    <span className="w-1 h-1 bg-gray-600 rounded-full group-hover:bg-white transition-colors" />
                     {item.label}
-                  </motion.a>
-                </motion.li>
+                  </a>
+                </li>
               ))}
             </ul>
-          </motion.div>
+          </div>
 
-          {/* Follow Column */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.4 }}
-            className="space-y-4"
-          >
-            <div className="flex items-center gap-2 mb-6">
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a1.994 1.994 0 01-1.414-.586m0 0L11 14h4a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2v4l.586-.586z" />
-              </svg>
-              <h4 className="text-base font-bold tracking-wider uppercase text-[#A0A0A0]">Follow Us</h4>
-            </div>
-            <ul className="space-y-3.5">
+          {/* About */}
+          <div>
+            <h4 className="text-sm font-semibold mb-4 uppercase">About</h4>
+            <ul className="space-y-2.5">
               {[
-                { name: 'Instagram' },
-                { name: 'Twitter' },
-                { name: 'Facebook' },
-                { name: 'Pinterest' },
-                { name: 'YouTube' }
-              ].map((item, index) => (
-                <motion.li
-                  key={item.name}
-                  initial={{ opacity: 0, x: -10 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: 0.4 + index * 0.05 }}
-                >
-                  <motion.a
-                    href="#"
+                { label: 'About Us', href: '#story', scroll: true },
+                { label: 'Careers', href: '#', onClick: () => alert('Careers\n\nJoin our team! This would navigate to careers page.') },
+                { label: 'Store Locator', href: '#', onClick: () => alert('Store Locator\n\nFind VSTRA stores near you.') },
+                { label: 'Sustainability', href: '#', onClick: () => alert('Sustainability\n\nOur commitment to sustainable fashion.') }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
+                    onClick={(e) => {
+                      if (item.onClick) {
+                        e.preventDefault()
+                        item.onClick()
+                      } else if (item.scroll) {
+                        e.preventDefault()
+                        document.getElementById('story')?.scrollIntoView({ behavior: 'smooth' })
+                      }
+                    }}
+                    className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Shop */}
+          <div>
+            <h4 className="text-sm font-semibold mb-4 uppercase">Shop</h4>
+            <ul className="space-y-2.5">
+              {['Men', 'Women', 'Kids', 'Accessories', 'Sale'].map((item) => (
+                <li key={item}>
+                  <a
+                    href="#categories"
                     onClick={(e) => {
                       e.preventDefault()
-                      alert(`Follow us on ${item.name}!\n\n@VSTRA_Official\n\nThis would open our ${item.name} profile in a complete site.`)
+                      document.getElementById('categories')?.scrollIntoView({ behavior: 'smooth' })
                     }}
-                    whileHover={{ x: 5, color: '#ffffff' }}
-                    className="text-[#CCCCCC] hover:text-white transition-all duration-300 text-sm cursor-pointer inline-flex items-center gap-2 group"
+                    className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
                   >
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M12 2C6.477 2 2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.879V14.89h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.989C18.343 21.129 22 16.99 22 12c0-5.523-4.477-10-10-10z" />
-                    </svg>
-                    {item.name}
-                  </motion.a>
-                </motion.li>
+                    {item}
+                  </a>
+                </li>
               ))}
             </ul>
-          </motion.div>
-        </div>
+          </div>
 
-        {/* Bottom Bar */}
-        <div className="border-t border-gray-800 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            {/* Logo */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              whileHover={{ scale: 1.05 }}
-              className="text-2xl md:text-3xl font-bold tracking-tighter cursor-pointer"
-              onClick={() => {
-                window.scrollTo({ top: 0, behavior: 'smooth' })
-              }}
-            >
-              VSTRA
-            </motion.div>
+          {/* Policies */}
+          <div>
+            <h4 className="text-sm font-semibold mb-4 uppercase">Policies</h4>
+            <ul className="space-y-2.5">
+              {[
+                { label: 'Privacy Policy', href: '#' },
+                { label: 'Terms & Conditions', href: '#' },
+                { label: 'Shipping Policy', href: '#' },
+                { label: 'Return Policy', href: '/returns' }
+              ].map((item) => (
+                <li key={item.label}>
+                  <a
+                    href={item.href}
+                    onClick={(e) => {
+                      if (item.href === '#') {
+                        e.preventDefault()
+                        alert(`${item.label}\n\nThis would display the ${item.label.toLowerCase()} page.`)
+                      }
+                    }}
+                    className="text-sm text-gray-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    {item.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
 
-            {/* Copyright */}
-            <motion.p
-              initial={{ opacity: 0 }}
-              whileInView={{ opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-gray-500 text-sm text-center order-last md:order-none"
-            >
-              © 2024 VSTRA. All rights reserved.
-            </motion.p>
-
-            {/* Legal Links */}
-            <div className="flex flex-wrap justify-center gap-4 md:gap-6">
-              {['Privacy', 'Terms', 'Cookies'].map((item, index) => (
-                <motion.a
-                  key={item}
+          {/* Connect With Us */}
+          <div>
+            <h4 className="text-sm font-semibold mb-4 uppercase">Connect With Us</h4>
+            
+            {/* Social Media */}
+            <div className="flex gap-3 mb-6">
+              {[
+                { name: 'Facebook', icon: 'M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z' },
+                { name: 'Instagram', icon: 'M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37zm1.5-4.87h.01M6.5 6.5h11v11h-11z' },
+                { name: 'Twitter', icon: 'M23 3a10.9 10.9 0 01-3.14 1.53 4.48 4.48 0 00-7.86 3v1A10.66 10.66 0 013 4s-4 9 5 13a11.64 11.64 0 01-7 2c9 5 20 0 20-11.5a4.5 4.5 0 00-.08-.83A7.72 7.72 0 0023 3z' },
+                { name: 'YouTube', icon: 'M22.54 6.42a2.78 2.78 0 00-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 00-1.94 2A29 29 0 001 11.75a29 29 0 00.46 5.33A2.78 2.78 0 003.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 001.94-2 29 29 0 00.46-5.25 29 29 0 00-.46-5.33z' }
+              ].map((social) => (
+                <a
+                  key={social.name}
                   href="#"
                   onClick={(e) => {
                     e.preventDefault()
-                    alert(`${item} Policy\n\nThis would display the ${item.toLowerCase()} policy page in a complete ecommerce site.`)
+                    alert(`Follow us on ${social.name}!\n\n@VSTRA_Official`)
                   }}
-                  initial={{ opacity: 0 }}
-                  whileInView={{ opacity: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ y: -2, color: '#ffffff' }}
-                  className="text-gray-500 hover:text-white transition-all duration-300 text-sm cursor-pointer font-medium"
+                  className="w-9 h-9 bg-[#2a2a2a] hover:bg-white hover:text-black rounded-full flex items-center justify-center transition-all cursor-pointer"
+                  aria-label={social.name}
                 >
-                  {item}
-                </motion.a>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d={social.icon} />
+                  </svg>
+                </a>
               ))}
+            </div>
+
+            {/* App Download */}
+            <div className="space-y-2">
+              <p className="text-xs text-gray-400 mb-2">DOWNLOAD THE APP</p>
+              <div className="flex flex-col gap-2">
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Download on App Store\n\nThis would redirect to the iOS app.')
+                  }}
+                  className="bg-[#2a2a2a] hover:bg-[#333] px-3 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-[10px] text-gray-400">Download on the</div>
+                    <div className="text-xs font-semibold">App Store</div>
+                  </div>
+                </a>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    alert('Get it on Google Play\n\nThis would redirect to the Android app.')
+                  }}
+                  className="bg-[#2a2a2a] hover:bg-[#333] px-3 py-2 rounded flex items-center gap-2 transition-colors cursor-pointer"
+                >
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M3,20.5V3.5C3,2.91 3.34,2.39 3.84,2.15L13.69,12L3.84,21.85C3.34,21.6 3,21.09 3,20.5M16.81,15.12L6.05,21.34L14.54,12.85L16.81,15.12M20.16,10.81C20.5,11.08 20.75,11.5 20.75,12C20.75,12.5 20.53,12.9 20.18,13.18L17.89,14.5L15.39,12L17.89,9.5L20.16,10.81M6.05,2.66L16.81,8.88L14.54,11.15L6.05,2.66Z"/>
+                  </svg>
+                  <div className="text-left">
+                    <div className="text-[10px] text-gray-400">GET IT ON</div>
+                    <div className="text-xs font-semibold">Google Play</div>
+                  </div>
+                </a>
+              </div>
             </div>
           </div>
+        </div>
 
-          {/* Payment Methods */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="mt-8 pt-6 border-t border-gray-800/50"
-          >
-            <p className="text-gray-500 text-xs text-center mb-4">Accepted Payment Methods</p>
-            <div className="flex flex-wrap justify-center items-center gap-4">
-              {['Visa', 'Mastercard', 'UPI', 'Net Banking', 'Razorpay'].map((method, index) => (
-                <motion.span
-                  key={method}
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  whileInView={{ opacity: 1, scale: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.05 }}
-                  whileHover={{ scale: 1.1 }}
-                  className="px-3 py-1.5 bg-white/5 rounded-lg text-[#CCCCCC] text-xs font-medium"
-                >
-                  {method}
-                </motion.span>
-              ))}
+
+        {/* Payment & Security */}
+        <div className="border-t border-gray-700 pt-8 mb-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            <div className="text-center md:text-left">
+              <p className="text-xs text-gray-400 mb-3">WE ACCEPT</p>
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-3">
+                {['Visa', 'Mastercard', 'Amex', 'UPI', 'Paytm', 'Net Banking'].map((method) => (
+                  <span
+                    key={method}
+                    className="px-3 py-1.5 bg-white text-black text-xs font-medium rounded"
+                  >
+                    {method}
+                  </span>
+                ))}
+              </div>
             </div>
-          </motion.div>
+            
+            <div className="text-center md:text-right">
+              <p className="text-xs text-gray-400 mb-3">100% SECURE PAYMENTS</p>
+              <div className="flex items-center gap-2 justify-center md:justify-end">
+                <svg className="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+                <span className="text-xs text-gray-400">SSL Encrypted</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="border-t border-gray-700 pt-6">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-gray-400">
+            <div className="flex items-center gap-2">
+              <span className="text-xl font-bold text-white cursor-pointer" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                VSTRA
+              </span>
+              <span className="hidden md:inline">|</span>
+              <span>© 2024 VSTRA. All Rights Reserved.</span>
+            </div>
+            
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <a href="#" onClick={(e) => { e.preventDefault(); alert('Privacy Policy\n\nThis would display the privacy policy.') }} className="hover:text-white transition-colors cursor-pointer">
+                Privacy Policy
+              </a>
+              <span>|</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); alert('Terms of Service\n\nThis would display the terms of service.') }} className="hover:text-white transition-colors cursor-pointer">
+                Terms of Service
+              </a>
+              <span>|</span>
+              <a href="#" onClick={(e) => { e.preventDefault(); alert('Sitemap\n\nThis would display the sitemap.') }} className="hover:text-white transition-colors cursor-pointer">
+                Sitemap
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </footer>

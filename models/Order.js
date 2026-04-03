@@ -1,6 +1,10 @@
-﻿import mongoose from 'mongoose'
+import mongoose from 'mongoose'
 
 const OrderSchema = new mongoose.Schema({
+  orderId: {
+    type: String,
+    unique: true,
+  },
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
@@ -86,5 +90,15 @@ const OrderSchema = new mongoose.Schema({
     default: Date.now,
   },
 })
+
+// Generate Flipkart-style order ID before saving
+OrderSchema.pre('save', function (next) {
+  if (!this.orderId) {
+    const timestamp = Date.now().toString(); // 13 digits
+    const random = Math.floor(Math.random() * 100000).toString().padStart(5, '0'); // 5 digits
+    this.orderId = 'OD' + timestamp + random; // OD + 18 digits total
+  }
+  next();
+});
 
 export default mongoose.models.Order || mongoose.model('Order', OrderSchema)

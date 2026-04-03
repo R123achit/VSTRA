@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
@@ -83,18 +83,12 @@ export default function SearchBar({ scrolled }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setIsOpen(true)}
-          whileFocus={{ scale: 1.02 }}
-          placeholder="Search products..."
-          className={`w-64 px-4 py-2.5 pl-10 text-sm rounded-full transition-all duration-300 focus:outline-none border-2 ${
-            scrolled
-              ? 'bg-gray-100 text-black placeholder-gray-500 border-gray-200 focus:border-black focus:bg-white hover:border-gray-400'
-              : 'bg-white/10 backdrop-blur-sm text-white placeholder-white/50 border-white/20 focus:border-white focus:bg-white/20 hover:border-white/40'
-          }`}
+          whileFocus={{ scale: 1.01 }}
+          placeholder="Search"
+          className={`w-80 xl:w-96 px-4 py-[9px] pl-[42px] text-[14px] rounded-full transition-all duration-300 focus:outline-none border bg-transparent border-gray-300 focus:border-gray-900`}
         />
         <svg
-          className={`absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 ${
-            scrolled ? 'text-gray-500' : 'text-white/60'
-          }`}
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-[18px] h-[18px] text-gray-400"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -102,7 +96,7 @@ export default function SearchBar({ scrolled }) {
           <path
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeWidth={2}
+            strokeWidth={1.5}
             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
           />
         </svg>

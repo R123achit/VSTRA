@@ -41,17 +41,22 @@ export default async function handler(req, res) {
 
       console.log('Order status updated successfully:', order._id, order.status)
 
-      // Send status update email (don't wait for it)
+      // Send status update email immediately and wait for it
       if (order.user && order.user.email) {
-        sendOrderStatusEmail(order, order.user.email, order.user.name, status)
-          .then((result) => {
-            if (result.success) {
-              console.log('✅ Status update email sent to:', order.user.email)
-            }
-          })
-          .catch((error) => {
-            console.error('❌ Email error:', error)
-          })
+        try {
+          const emailResult = await sendOrderStatusEmail(order, order.user.email, order.user.name, status)
+          if (emailResult.success) {
+            console.log('✅ Status update email sent to:', order.user.email)
+            console.log('✅ Message ID:', emailResult.messageId)
+          } else {
+            console.error('❌ Failed to send status email:', emailResult.error)
+          }
+        } catch (error) {
+          console.error('❌ Email sending error:', error.message)
+          // Don't fail the status update if email fails
+        }
+      } else {
+        console.error('❌ No user email found for order:', order._id)
       }
 
       return res.status(200).json({ success: true, order })

@@ -267,7 +267,7 @@ export default function SellerEarnings() {
                             {new Date(commission.createdAt).toLocaleDateString('en-IN')}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-blue-600">
-                            #{commission.orderId?._id?.slice(-8) || 'N/A'}
+                            {commission.orderId?.orderId || ('#' + commission.orderId?._id?.slice(-8).toUpperCase()) || 'N/A'}
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-semibold">
                             ₹{commission.orderAmount?.toLocaleString()}
@@ -317,7 +317,7 @@ export default function SellerEarnings() {
                 return (
                   <div key={commission._id} className="border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-3">
-                      <span className="font-semibold">Order #{commission.orderId?._id?.slice(-8)}</span>
+                      <span className="font-semibold">{commission.orderId?.orderId ? 'Order ' + commission.orderId?.orderId : 'Order #' + commission.orderId?._id?.slice(-8).toUpperCase()}</span>
                       <span className="text-sm text-gray-600">{new Date(commission.createdAt).toLocaleDateString('en-IN')}</span>
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
@@ -369,7 +369,7 @@ export default function SellerEarnings() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <p className="text-sm text-gray-600">Order ID</p>
-                    <p className="font-semibold">#{selectedOrder.orderId?._id?.slice(-8)}</p>
+                    <p className="font-semibold">{selectedOrder.orderId?.orderId || ('#' + selectedOrder.orderId?._id?.slice(-8).toUpperCase())}</p>
                   </div>
                   <div>
                     <p className="text-sm text-gray-600">Date</p>

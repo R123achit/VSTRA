@@ -1,17 +1,20 @@
 import { motion } from 'framer-motion'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useCartStore } from '../store/useStore'
 import WishlistButton from './WishlistButton'
-import CompareButton from './CompareButton'
 import toast from 'react-hot-toast'
 
-export default function ProductCard({ product, index = 0, onQuickView }) {
+export default function ProductCard({ product, index = 0 }) {
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [currentImg, setCurrentImg] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
   const addToCart = useCartStore((state) => state.addToCart)
+  const touchStartX = useRef(null)
 
   const handleQuickAdd = (e) => {
     e.preventDefault()
+    e.stopPropagation()
     addToCart({
       _id: product._id,
       name: product.name,
@@ -20,154 +23,179 @@ export default function ProductCard({ product, index = 0, onQuickView }) {
       size: product.sizes?.[0] || 'M',
       color: product.colors?.[0]?.name || 'Default',
     })
-    toast.success('Added to cart!')
+    toast.success('Added to bag', {
+      style: { background: '#1a1a1a', color: '#fff', fontSize: '13px', letterSpacing: '0.5px', borderRadius: '0' },
+      iconTheme: { primary: '#fff', secondary: '#1a1a1a' },
+    })
   }
 
-  const discount = product.compareAtPrice 
+  // Swipe on mobile to browse images
+  const handleTouchStart = (e) => { touchStartX.current = e.touches[0].clientX }
+  const handleTouchEnd = (e) => {
+    if (touchStartX.current === null || product.images.length <= 1) return
+    const diff = touchStartX.current - e.changedTouches[0].clientX
+    if (Math.abs(diff) > 40) {
+      setCurrentImg((prev) =>
+        diff > 0
+          ? Math.min(prev + 1, product.images.length - 1)
+          : Math.max(prev - 1, 0)
+      )
+    }
+    touchStartX.current = null
+  }
+
+  // On hover, show second image if available
+  const displayImg = isHovered && product.images.length > 1 && currentImg === 0
+    ? product.images[1]
+    : product.images[currentImg] || product.images[0]
+
+  const discount = product.compareAtPrice && product.compareAtPrice > product.price
     ? Math.round(((product.compareAtPrice - product.price) / product.compareAtPrice) * 100)
     : 0
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.05 }}
-      className="group bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-300"
+      transition={{ delay: Math.min(index * 0.03, 0.4), duration: 0.35 }}
+      className="group relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => { setIsHovered(false); setCurrentImg(0) }}
     >
       <Link href={`/product/${product._id}`}>
-        <div className="relative aspect-[3/4] overflow-hidden cursor-pointer bg-gray-100">
-          {/* Skeleton Loader */}
+        {/* Image Container */}
+        <div
+          className="relative aspect-[3/4] overflow-hidden bg-[#f2f0ed] cursor-pointer"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Skeleton */}
           {!imageLoaded && (
-            <div className="absolute inset-0 bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse" />
+            <div className="absolute inset-0 bg-[#eae8e4] animate-pulse" />
           )}
-          
+
           {/* Product Image */}
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            onLoad={() => setImageLoaded(true)}
-            className={`w-full h-full object-cover transition-all duration-700 group-hover:scale-110 ${
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            }`}
-          />
-          
-          {/* Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-          
-          {/* Badges */}
-          <div className="absolute top-4 left-4 flex flex-col gap-2">
-            {product.stock < 10 && product.stock > 0 && (
-              <span className="bg-red-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">
-                Only {product.stock} left
+          <div className="absolute inset-0 p-4 pb-6 flex items-center justify-center">
+            <img
+              src={displayImg}
+              alt={product.name}
+              onLoad={() => setImageLoaded(true)}
+              className={`max-w-full max-h-full object-contain mix-blend-multiply transition-all duration-500 ease-out ${
+                imageLoaded ? 'opacity-100' : 'opacity-0'
+              } ${isHovered ? 'scale-[1.03]' : 'scale-100'}`}
+              loading="lazy"
+            />
+          </div>
+
+          {/* Wishlist heart — top right */}
+          <div className="absolute top-3 right-3 z-10" onClick={(e) => e.preventDefault()}>
+            <WishlistButton product={product} size="md" />
+          </div>
+
+          {/* Badges — top left stack */}
+          <div className="absolute top-3 left-3 flex flex-col gap-1.5 z-10">
+            {product.isNew && (
+              <span className="bg-[#1a1a1a] text-white text-[9px] tracking-[0.15em] px-2.5 py-1 uppercase font-medium">
+                New
               </span>
             )}
             {discount > 0 && (
-              <span className="bg-green-600 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">
-                {discount}% OFF
-              </span>
-            )}
-            {product.stock === 0 && (
-              <span className="bg-gray-900 text-white px-3 py-1 text-xs font-bold rounded-full shadow-lg">
-                Out of Stock
+              <span className="bg-[#c0392b] text-white text-[9px] tracking-[0.1em] px-2.5 py-1 uppercase font-medium">
+                -{discount}%
               </span>
             )}
           </div>
-          
-          {/* Action Buttons */}
-          <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col gap-2">
-            <motion.button
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onClick={(e) => {
-                e.preventDefault()
-                onQuickView?.(product)
-              }}
-              className="bg-white/90 backdrop-blur-sm p-2 rounded-full shadow-lg hover:bg-white transition-colors"
-              title="Quick View"
-            >
-              <svg className="w-5 h-5 text-gray-800" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-              </svg>
-            </motion.button>
-            <div className="bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-              <CompareButton product={product} size="md" />
+
+          {/* Out of stock overlay */}
+          {product.stock === 0 && (
+            <div className="absolute inset-0 bg-white/70 flex items-center justify-center backdrop-blur-[1px]">
+              <span className="text-[11px] tracking-[0.2em] uppercase text-neutral-500 font-medium">Sold Out</span>
             </div>
-            <div className="bg-white/90 backdrop-blur-sm rounded-full shadow-lg">
-              <WishlistButton product={product} size="md" />
+          )}
+
+          {/* Image pagination dots */}
+          {product.images.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+              {product.images.slice(0, 5).map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={(e) => { e.preventDefault(); e.stopPropagation(); setCurrentImg(idx) }}
+                  className={`w-[6px] h-[6px] rounded-full transition-all duration-200 ${
+                    currentImg === idx
+                      ? 'bg-[#1a1a1a] scale-110'
+                      : 'bg-[#1a1a1a]/25 hover:bg-[#1a1a1a]/50'
+                  }`}
+                />
+              ))}
             </div>
-          </div>
-          
-          {/* Quick Add Button - Bottom */}
-          <motion.button
-            initial={{ y: 20, opacity: 0 }}
-            whileHover={{ y: 0, opacity: 1 }}
+          )}
+
+          {/* Quick Add — slides up on hover */}
+          <div
+            className={`absolute bottom-0 left-0 right-0 transition-all duration-300 ease-out ${
+              isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+            }`}
             onClick={handleQuickAdd}
-            disabled={product.stock === 0}
-            className="absolute bottom-4 left-4 right-4 bg-black text-white py-3 rounded-lg font-semibold opacity-0 group-hover:opacity-100 transition-all duration-300 disabled:bg-gray-400 disabled:cursor-not-allowed"
           >
-            {product.stock === 0 ? 'Out of Stock' : 'Quick Add'}
-          </motion.button>
+            <button
+              disabled={product.stock === 0}
+              className="w-full bg-[#1a1a1a]/95 backdrop-blur-sm text-white py-3.5 text-[10px] tracking-[0.25em] uppercase font-medium hover:bg-[#000] transition-colors disabled:bg-neutral-400 disabled:cursor-not-allowed"
+            >
+              {product.stock === 0 ? 'Sold Out' : '+ Quick Add'}
+            </button>
+          </div>
         </div>
       </Link>
 
-      {/* Product Details */}
-      <div className="p-4">
+      {/* Product Info */}
+      <div className="pt-3 pb-2 px-0.5">
+        {/* Brand */}
+        <p className="text-[10px] text-neutral-400 tracking-[0.12em] uppercase mb-1 font-medium">
+          {product.brand || 'VSTRA'}
+        </p>
+
+        {/* Product Name */}
         <Link href={`/product/${product._id}`}>
-          <h3 className="font-semibold text-lg mb-2 hover:text-gray-600 transition-colors cursor-pointer line-clamp-2">
+          <h3 className="text-[13px] text-[#1a1a1a] leading-[1.4] cursor-pointer hover:underline underline-offset-[3px] decoration-neutral-300 transition-all line-clamp-2 mb-2 font-normal">
             {product.name}
           </h3>
         </Link>
-        
+
+        {/* Color swatches */}
+        {product.colors && product.colors.length > 1 && (
+          <div className="flex gap-1.5 mb-2">
+            {product.colors.slice(0, 5).map((color) => (
+              <span
+                key={color.name}
+                className="w-3.5 h-3.5 rounded-full border border-neutral-200 hover:border-neutral-400 transition-colors cursor-pointer"
+                style={{ backgroundColor: color.hex }}
+                title={color.name}
+              />
+            ))}
+            {product.colors.length > 5 && (
+              <span className="text-[10px] text-neutral-400 self-center ml-0.5">
+                +{product.colors.length - 5}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Price */}
-        <div className="flex items-baseline gap-2 mb-3">
-          <p className="text-xl font-bold text-black">
-            ₹{Math.max(product.price, 99).toFixed(2)}
+        <div className="flex items-baseline gap-2">
+          <p className="text-[14px] text-[#1a1a1a] font-medium">
+            ₹{product.price.toLocaleString('en-IN')}
           </p>
           {product.compareAtPrice && product.compareAtPrice > product.price && (
-            <p className="text-sm text-gray-400 line-through">
-              ₹{Math.max(product.compareAtPrice, 99).toFixed(2)}
-            </p>
+            <>
+              <p className="text-[12px] text-neutral-400 line-through">
+                ₹{product.compareAtPrice.toLocaleString('en-IN')}
+              </p>
+              <p className="text-[11px] text-[#c0392b] font-medium">
+                ({discount}% off)
+              </p>
+            </>
           )}
         </div>
-        
-        {/* Rating */}
-        {product.rating > 0 && (
-          <div className="flex items-center gap-1 mb-3">
-            <div className="flex">
-              {[...Array(5)].map((_, i) => (
-                <span 
-                  key={i} 
-                  className={`text-base ${
-                    i < Math.floor(product.rating) 
-                      ? 'text-yellow-500' 
-                      : 'text-gray-300'
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-            <span className="text-sm text-gray-600 ml-1">
-              {product.rating.toFixed(1)} ({product.numReviews || 0})
-            </span>
-          </div>
-        )}
-        
-        {/* Sizes */}
-        {product.sizes && product.sizes.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {product.sizes.slice(0, 4).map((size) => (
-              <motion.span 
-                key={size}
-                whileHover={{ scale: 1.1, borderColor: '#000' }}
-                className="text-xs border-2 border-gray-300 bg-white px-2.5 py-1.5 rounded font-semibold hover:border-black transition-all duration-300 cursor-pointer"
-              >
-                {size}
-              </motion.span>
-            ))}
-          </div>
-        )}
       </div>
     </motion.div>
   )

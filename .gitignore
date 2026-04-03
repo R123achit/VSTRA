@@ -45,3 +45,8 @@ next-env.d.ts
 
 # OS
 Thumbs.db
+
+# Large video files
+/public/videos/*.mp4
+/landing-page-clip/
+*.mp4

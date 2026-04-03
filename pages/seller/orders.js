@@ -109,7 +109,7 @@ export default function SellerOrders() {
               <div key={order._id} className="bg-white rounded-lg shadow p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="font-semibold text-lg">Order #{order._id.slice(-8)}</h3>
+                    <h3 className="font-semibold text-lg">{order.orderId ? `Order ${order.orderId}` : `Order #${order._id.slice(-8).toUpperCase()}`}</h3>
                     <p className="text-sm text-gray-600">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </p>

@@ -9,6 +9,7 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import ActiveOffersBar from '../components/ActiveOffersBar'
 import CancelOrder from '../components/CancelOrder'
+import ProfileSidebar from '../components/ProfileSidebar'
 import useOffersBarVisible from '../hooks/useOffersBarVisible'
 
 export default function Orders() {
@@ -46,10 +47,12 @@ export default function Orders() {
       // Transform orders to match UI format - using REAL order data
       const transformedOrders = response.data.map(order => ({
         id: order._id,
+        orderId: order.orderId,
         date: order.createdAt,
         status: order.status || 'Processing',
         total: order.totalAmount,
         items: order.items.map(item => ({
+          productId: item.product,
           name: item.name,
           size: item.size || 'N/A',
           color: item.color || 'N/A',
@@ -102,77 +105,104 @@ export default function Orders() {
       <ActiveOffersBar />
       <Navbar />
 
-      <div className="min-h-screen bg-gray-50" style={{ paddingTop: offersBarVisible ? '10rem' : '7rem' }}>
-        <div className="max-w-7xl mx-auto px-6 py-12">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-          >
-            <h1 className="text-4xl font-bold mb-2">My Orders</h1>
-            <p className="text-gray-600 mb-8">View and manage your order history</p>
-          </motion.div>
+      <main className="min-h-screen bg-white pb-24" style={{ paddingTop: offersBarVisible ? '9rem' : '6rem' }}>
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-12 pt-8">
+          
+          {/* Breadcrumb */}
+          <nav className="flex items-center gap-2 text-[12px] text-gray-400 tracking-[0.1em] uppercase mb-12">
+            <Link href="/"><span className="hover:text-black transition-colors cursor-pointer">Home</span></Link>
+            <span className="text-gray-300">/</span>
+            <Link href="/account"><span className="hover:text-black transition-colors cursor-pointer">Account</span></Link>
+            <span className="text-gray-300">/</span>
+            <span className="text-black font-medium">Orders</span>
+          </nav>
+
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-24">
+            {/* Left Sidebar */}
+            <ProfileSidebar activePage="orders" />
+
+            {/* Main Content */}
+            <div className="flex-1 lg:border-l border-gray-100 lg:pl-[4.5rem]">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <h1 className="text-[24px] font-bold text-[#1a1a1a] tracking-[0.05em] uppercase mb-2">My Orders</h1>
+                <p className="text-[13px] text-gray-500 tracking-wide mb-12">View and manage your recent purchases</p>
+              </motion.div>
 
           {loading ? (
-            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-black mx-auto mb-4"></div>
-              <p className="text-gray-600">Loading your orders...</p>
+            <div className="border border-neutral-200 p-16 text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#1a1a1a] mx-auto mb-4"></div>
+              <p className="text-[12px] uppercase tracking-[0.1em] text-neutral-500">Loading orders...</p>
             </div>
           ) : orders.length === 0 ? (
-            <div className="bg-white rounded-lg shadow-lg p-12 text-center">
-              <p className="text-gray-600 mb-4">You haven't placed any orders yet.</p>
+            <div className="border border-neutral-200 p-16 text-center bg-[#fcfcfc]">
+              <p className="text-[13px] text-gray-500 mb-6 uppercase tracking-widest">You haven't placed any orders yet.</p>
               <Link href="/shop">
-                <button className="bg-black text-white px-8 py-3 rounded-lg hover:bg-gray-800 transition-colors">
+                <button className="bg-[#1a1a1a] text-white px-10 py-4 text-[12px] tracking-[0.15em] uppercase hover:bg-black transition-colors">
                   Start Shopping
                 </button>
               </Link>
             </div>
           ) : (
-            <div className="space-y-6">
+            <div className="space-y-12">
               {orders.map((order, index) => (
                 <motion.div
                   key={order.id}
-                  className="bg-white rounded-lg shadow-lg overflow-hidden"
-                  initial={{ opacity: 0, y: 20 }}
+                  className="border border-neutral-200"
+                  initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.1 }}
                 >
                   {/* Order Header */}
-                  <div className="bg-gray-50 p-6 border-b border-gray-200">
-                    <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div className="bg-[#fbfbfb] p-6 lg:p-8 border-b border-neutral-200 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                    <div className="grid grid-cols-2 md:flex md:gap-12 gap-y-4">
                       <div>
-                        <h3 className="font-bold text-lg">Order {order.id}</h3>
-                        <p className="text-sm text-gray-600">
-                          Placed on {new Date(order.date).toLocaleDateString('en-US', { 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
+                        <p className="text-[11px] text-gray-500 uppercase tracking-[0.1em] mb-1">Order Number</p>
+                        <p className="text-[13px] font-medium text-[#1a1a1a] tracking-wide">
+                          {order.orderId ? order.orderId : order.id.slice(-8).toUpperCase()}
                         </p>
                       </div>
-                      <div className="flex items-center gap-4">
-                        <span className={`px-4 py-2 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
-                        <span className="text-lg font-bold">₹{order.total.toLocaleString('en-IN')}</span>
+                      <div>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-[0.1em] mb-1">Order Date</p>
+                        <p className="text-[13px] font-medium text-[#1a1a1a] tracking-wide">
+                          {new Date(order.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' }).toUpperCase()}
+                        </p>
                       </div>
+                      <div>
+                        <p className="text-[11px] text-gray-500 uppercase tracking-[0.1em] mb-1">Total Amount</p>
+                        <p className="text-[13px] font-medium text-[#1a1a1a] tracking-wide">₹{order.total.toLocaleString('en-IN')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center">
+                      <span className="text-[12px] font-bold uppercase tracking-[0.1em] px-4 py-2 border border-neutral-300 bg-white shadow-sm text-[#1a1a1a]">
+                        {order.status}
+                      </span>
                     </div>
                   </div>
 
                   {/* Order Items */}
-                  <div className="p-6">
-                    <div className="space-y-4">
+                  <div className="p-6 lg:p-8">
+                    <div className="space-y-6">
                       {order.items.map((item, i) => (
-                        <div key={i} className="flex items-center gap-4 pb-4 border-b border-gray-100 last:border-0">
-                          <div 
-                            className="w-20 h-20 bg-gray-200 rounded-lg bg-cover bg-center flex-shrink-0"
-                            style={{ backgroundImage: `url(${item.image})` }}
-                          />
-                          <div className="flex-1">
-                            <h4 className="font-semibold">{item.name}</h4>
-                            <p className="text-sm text-gray-600">
-                              Size: {item.size} | Color: {item.color} | Qty: {item.qty}
+                         <div key={i} className="flex flex-col sm:flex-row gap-6 pb-6 border-b border-neutral-100 last:border-0 last:pb-0">
+                          <Link href={item.productId ? `/product/${item.productId}` : '#'}>
+                            <div className="w-[100px] h-[130px] bg-[#f2f0ed] flex-shrink-0 cursor-pointer overflow-hidden relative">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" />
+                            </div>
+                          </Link>
+                          
+                          <div className="flex-1 flex flex-col justify-center">
+                            <Link href={item.productId ? `/product/${item.productId}` : '#'}>
+                              <h4 className="text-[14px] font-medium text-[#1a1a1a] hover:text-gray-500 transition-colors cursor-pointer uppercase tracking-wide mb-2 inline-block">
+                                {item.name}
+                              </h4>
+                            </Link>
+                            <p className="text-[12px] text-gray-500 uppercase tracking-widest mb-3">
+                              Size: {item.size} <span className="mx-2">|</span> Color: {item.color} <span className="mx-2">|</span> Qty: {item.qty}
                             </p>
-                            <p className="text-sm font-semibold mt-1">₹{item.price.toLocaleString('en-IN')}</p>
+                            <p className="text-[14px] font-medium text-[#1a1a1a]">₹{item.price.toLocaleString('en-IN')}</p>
                           </div>
                         </div>
                       ))}
@@ -180,24 +210,25 @@ export default function Orders() {
 
                     {/* Tracking Info */}
                     {order.trackingNumber && (
-                      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                        <p className="text-sm text-blue-800">
-                          <strong>Tracking Number:</strong> {order.trackingNumber}
-                        </p>
+                      <div className="mt-8 p-5 bg-[#fbfbfb] border border-neutral-200 flex items-center justify-between">
+                        <div>
+                          <p className="text-[11px] text-gray-500 uppercase tracking-[0.1em] mb-1">Tracking Number</p>
+                          <p className="text-[13px] font-medium text-[#1a1a1a] tracking-widest">{order.trackingNumber}</p>
+                        </div>
                       </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="mt-6 flex flex-wrap gap-3">
+                    <div className="mt-8 flex flex-wrap gap-4">
                       <Link href={`/order/${order.id}`}>
-                        <button className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors font-semibold">
+                        <button className="px-8 py-3 bg-[#1a1a1a] text-white text-[12px] tracking-[0.15em] uppercase hover:bg-black transition-colors font-medium">
                           View Details
                         </button>
                       </Link>
 
                       {order.canReturn && (
                         <Link href="/returns">
-                          <button className="px-6 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition-colors font-semibold">
+                          <button className="px-8 py-3 border border-[#1a1a1a] text-[#1a1a1a] text-[12px] tracking-[0.15em] uppercase hover:bg-[#1a1a1a] hover:text-white transition-colors font-medium">
                             Return Items
                           </button>
                         </Link>
@@ -209,14 +240,14 @@ export default function Orders() {
                             setSelectedOrder(order.id)
                             setShowCancelModal(true)
                           }}
-                          className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+                          className="px-8 py-3 border border-red-800 text-red-800 text-[12px] tracking-[0.15em] uppercase hover:bg-red-800 hover:text-white transition-colors font-medium"
                         >
                           Cancel Order
                         </button>
                       )}
 
                       {order.status === 'Delivered' && (
-                        <button className="px-6 py-2 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors font-semibold">
+                        <button className="px-8 py-3 border border-neutral-300 text-neutral-600 text-[12px] tracking-[0.15em] uppercase hover:bg-neutral-100 transition-colors font-medium">
                           Buy Again
                         </button>
                       )}
@@ -229,31 +260,35 @@ export default function Orders() {
 
           {/* Help Section */}
           <motion.div
-            className="mt-12 bg-purple-50 rounded-lg p-8"
-            initial={{ opacity: 0, y: 20 }}
+            className="mt-20 border-t border-neutral-200 pt-16"
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4 }}
           >
-            <h3 className="text-xl font-bold mb-4">Need Help with Your Order?</h3>
-            <div className="grid md:grid-cols-3 gap-6">
+            <h3 className="text-[16px] font-bold text-[#1a1a1a] uppercase tracking-widest mb-8 text-center">Need Support?</h3>
+            <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               <Link href="/returns">
-                <div className="bg-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer">
-                  <h4 className="font-semibold mb-2">Returns & Exchanges</h4>
-                  <p className="text-sm text-gray-600">Easy returns within 30 days</p>
+                <div className="border border-neutral-200 p-8 text-center hover:border-[#1a1a1a] transition-colors cursor-pointer group">
+                  <h4 className="text-[13px] font-bold uppercase tracking-[0.1em] text-[#1a1a1a] mb-2 group-hover:underline underline-offset-4">Returns & Exchanges</h4>
+                  <p className="text-[12px] text-gray-500">View policies and timelines</p>
                 </div>
               </Link>
-              <div className="bg-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-semibold mb-2">Track Your Order</h4>
-                <p className="text-sm text-gray-600">Get real-time updates</p>
+              <div className="border border-neutral-200 p-8 text-center hover:border-[#1a1a1a] transition-colors cursor-pointer group">
+                <h4 className="text-[13px] font-bold uppercase tracking-[0.1em] text-[#1a1a1a] mb-2 group-hover:underline underline-offset-4">Track Your Order</h4>
+                <p className="text-[12px] text-gray-500">Live courier updates</p>
               </div>
-              <div className="bg-white p-6 rounded-lg hover:shadow-lg transition-shadow cursor-pointer">
-                <h4 className="font-semibold mb-2">Contact Support</h4>
-                <p className="text-sm text-gray-600">We're here to help 24/7</p>
-              </div>
+              <Link href="/contact">
+                <div className="border border-neutral-200 p-8 text-center hover:border-[#1a1a1a] transition-colors cursor-pointer group">
+                  <h4 className="text-[13px] font-bold uppercase tracking-[0.1em] text-[#1a1a1a] mb-2 group-hover:underline underline-offset-4">Contact Us</h4>
+                  <p className="text-[12px] text-gray-500">Our team is available 24/7</p>
+                </div>
+              </Link>
             </div>
           </motion.div>
+            </div>
+          </div>
         </div>
-      </div>
+      </main>
 
       <Footer />
 

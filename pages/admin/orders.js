@@ -130,7 +130,7 @@ export default function AdminOrders() {
                     {orders.map((order) => (
                       <tr key={order._id} className="border-b hover:bg-gray-50">
                         <td className="px-6 py-4">
-                          <p className="font-mono text-sm">#{order._id.slice(-8)}</p>
+                          <p className="font-mono text-sm">{order.orderId || ('#' + order._id.slice(-8).toUpperCase())}</p>
                         </td>
                         <td className="px-6 py-4">
                           <p className="font-semibold">{order.user?.name || 'Guest'}</p>
@@ -163,7 +163,7 @@ export default function AdminOrders() {
                             onClick={() => {
                               const details = `
 Order Details:
-- Order ID: ${order._id}
+- Order ID: ${order.orderId || order._id}
 - Customer: ${order.user?.name} (${order.user?.email})
 - Items: ${order.orderItems.map(item => `\n  • ${item.name} x${item.quantity} - ₹${item.price}`).join('')}
 - Shipping: ${order.shippingAddress.fullName}, ${order.shippingAddress.city}
