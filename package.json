@@ -8,7 +8,10 @@
     "start": "next start",
     "lint": "next lint",
     "test:api": "node scripts/test_product_api.js",
-    "check:products": "node scripts/count_products.js"
+    "check:products": "node scripts/count_products.js",
+    "import:products": "node scripts/import_products.js",
+    "ai:test": "cd Data && python test_integration.py",
+    "ai:start": "cd Data && python api_fastapi.py"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

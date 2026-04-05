@@ -12,7 +12,7 @@ import ReviewSection from '../../components/ReviewSection'
 import StyleAssistant from '../../components/StyleAssistant'
 import SizeGuide from '../../components/SizeGuide'
 import ScrollToTop from '../../components/ScrollToTop'
-import SimilarProducts from '../../components/SimilarProducts'
+import MLRecommendations from '../../components/MLRecommendations'
 import { useCartStore } from '../../store/useStore'
 import toast, { Toaster } from 'react-hot-toast'
 import axios from 'axios'
@@ -551,9 +551,9 @@ export default function ProductDetail() {
             </div>
           </div>
 
-          {/* Similar Products */}
+          {/* ML-Powered Recommendations */}
           <div className="mt-16 lg:mt-24 border-t border-gray-200 pt-16 relative">
-            <SimilarProducts currentProductId={product._id} category={product.category} />
+            <MLRecommendations currentProductId={product._id} category={product.category} />
           </div>
 
           {/* Reviews Section */}

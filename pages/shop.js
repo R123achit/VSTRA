@@ -152,8 +152,11 @@ export default function Shop() {
   const tabsRef = useRef(null)
 
   const [products, setProducts] = useState([])
-  const [filteredProducts, setFilteredProducts] = useState([])
+  const [totalProducts, setTotalProducts] = useState(0)
+  const [page, setPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
   const [category, setCategory] = useState('all')
   const [subcategory, setSubcategory] = useState('all')
   const [sortBy, setSortBy] = useState('newest')
@@ -171,57 +174,74 @@ export default function Shop() {
 
   /* ─── URL sync ─── */
   useEffect(() => {
-    if (router.query.category) setCategory(router.query.category)
-    if (router.query.subcategory) setSubcategory(router.query.subcategory)
-    if (router.query.search) setSearchQuery(router.query.search)
-  }, [router.query.category, router.query.subcategory, router.query.search])
+    if (!router.isReady) return
+    setCategory(router.query.category || 'all')
+    setSubcategory(router.query.subcategory || 'all')
+    setSearchQuery(router.query.search || '')
+  }, [router.isReady, router.query])
 
   /* ─── Fetch ─── */
-  useEffect(() => { fetchProducts() }, [category, subcategory, sortBy])
+  const fetchAbortController = useRef(null)
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    if (!router.isReady) return
+    setPage(1)
+    fetchProducts(true)
+  }, [router.isReady, category, subcategory, sortBy, searchQuery, selectedPriceRange, selectedSizes, selectedColors])
+
+  useEffect(() => {
+    if (page > 1) {
+      fetchProducts(false)
+    }
+  }, [page])
+
+  const fetchProducts = async (isNewSearch = false) => {
     try {
-      setLoading(true)
-      const response = await axios.get('/api/products', {
-        params: {
-          category,
-          subcategory: subcategory !== 'all' ? subcategory : undefined,
-          sort: sortBy,
-          _t: Date.now(),
-        }
+      if (fetchAbortController.current) {
+        fetchAbortController.current.abort()
+      }
+      fetchAbortController.current = new AbortController()
+
+      if (isNewSearch) setLoading(true)
+      else setLoadingMore(true)
+      
+      const params = {
+        category,
+        subcategory: subcategory !== 'all' ? subcategory : undefined,
+        sort: sortBy,
+        page: isNewSearch ? 1 : page,
+        limit: 20
+      }
+      if (searchQuery) params.search = searchQuery
+      if (selectedPriceRange) {
+        params.minPrice = selectedPriceRange.min
+        params.maxPrice = selectedPriceRange.max
+      }
+      if (selectedSizes.length > 0) params.sizes = selectedSizes.join(',')
+      if (selectedColors.length > 0) params.colors = selectedColors.join(',')
+      
+      const response = await axios.get('/api/products', { 
+        params,
+        signal: fetchAbortController.current.signal
       })
-      setProducts(response.data.data)
-      setFilteredProducts(response.data.data)
+      
+      if (isNewSearch) {
+        setProducts(response.data.data || [])
+      } else {
+        setProducts(prev => [...prev, ...(response.data.data || [])])
+      }
+      setTotalProducts(response.data.total || 0)
+      setTotalPages(response.data.totalPages || 1)
+      setLoading(false)
+      setLoadingMore(false)
     } catch (error) {
+      if (axios.isCancel(error)) return
       console.error('Error fetching products:', error)
       toast.error('Failed to load products')
-    } finally {
       setLoading(false)
+      setLoadingMore(false)
     }
   }
-
-  /* ─── Client-side filtering ─── */
-  useEffect(() => {
-    let filtered = [...products]
-    if (searchQuery) {
-      const q = searchQuery.toLowerCase()
-      filtered = filtered.filter(p =>
-        p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
-      )
-    }
-    if (selectedPriceRange) {
-      filtered = filtered.filter(p => p.price >= selectedPriceRange.min && p.price <= selectedPriceRange.max)
-    }
-    if (selectedSizes.length > 0) {
-      filtered = filtered.filter(p => p.sizes?.some(s => selectedSizes.includes(s)))
-    }
-    if (selectedColors.length > 0) {
-      filtered = filtered.filter(p =>
-        p.colors?.some(c => selectedColors.includes(c.name))
-      )
-    }
-    setFilteredProducts(filtered)
-  }, [products, searchQuery, selectedPriceRange, selectedSizes, selectedColors])
 
   /* ─── Tabs scroll detection ─── */
   useEffect(() => {
@@ -384,7 +404,7 @@ export default function Shop() {
           {/* ─── Controls bar: count | grid slider | FILTER + SORT ─── */}
           <div className="flex items-center justify-between py-4">
             <p className="text-[12px] text-neutral-400 hidden md:block">
-              {filteredProducts.length} {filteredProducts.length === 1 ? 'product' : 'products'}
+              {totalProducts} {totalProducts === 1 ? 'product' : 'products'}
             </p>
 
             {/* Grid slider */}
@@ -453,7 +473,7 @@ export default function Shop() {
                   </div>
                 ))}
               </div>
-            ) : filteredProducts.length === 0 ? (
+            ) : products.length === 0 ? (
               <div className="text-center py-24">
                 <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-[#f2f0ed] flex items-center justify-center">
                   <svg className="w-7 h-7 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={1.5}>
@@ -470,18 +490,35 @@ export default function Shop() {
                 </button>
               </div>
             ) : (
-              <div className={`grid gap-x-3 gap-y-10 ${
-                gridCols === 2 ? 'grid-cols-2' : gridCols === 3 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
-              }`}>
-                {filteredProducts.map((product, index) => (
-                  <ProductCardInline
-                    key={product._id}
-                    product={product}
-                    index={index}
-                    onQuickAdd={handleQuickAdd}
-                  />
-                ))}
-              </div>
+              <>
+                <div className={`grid gap-x-3 gap-y-10 ${
+                  gridCols === 2 ? 'grid-cols-2' : gridCols === 3 ? 'grid-cols-2 md:grid-cols-3' : 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4'
+                }`}>
+                  {products.map((product, index) => (
+                    <ProductCardInline
+                      key={product._id}
+                      product={product}
+                      index={index}
+                      onQuickAdd={handleQuickAdd}
+                    />
+                  ))}
+                </div>
+                
+                {page < totalPages && (
+                  <div className="mt-16 text-center">
+                    <button
+                      onClick={() => setPage(p => p + 1)}
+                      disabled={loadingMore}
+                      className="px-8 py-3.5 border border-[#1a1a1a] text-[#1a1a1a] text-[12px] font-medium tracking-[0.1em] uppercase hover:bg-[#1a1a1a] hover:text-white transition-colors disabled:opacity-50"
+                    >
+                      {loadingMore ? 'Loading...' : 'Load More Products'}
+                    </button>
+                    <p className="mt-4 text-[13px] text-neutral-400">
+                      Showing {products.length} of {totalProducts} products
+                    </p>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -645,7 +682,7 @@ export default function Shop() {
                   onClick={() => setShowFilterDrawer(false)}
                   className="flex-1 py-3 text-[12px] tracking-[0.1em] uppercase text-white bg-[#1a1a1a] hover:bg-black transition-colors font-medium"
                 >
-                  Show {filteredProducts.length} Results
+                  Show {totalProducts} Results
                 </button>
               </div>
             </motion.div>

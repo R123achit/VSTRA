@@ -1,0 +1,7 @@
+177:     if (!router.isReady) return
+178:     setCategory(router.query.category || 'all')
+179:     setSubcategory(router.query.subcategory || 'all')
+180:     setSearchQuery(router.query.search || '')
+181:   }, [router.isReady, router.query.category, router.query.subcategory, router.query.search])
+187:     if (!router.isReady) return
+190:   }, [router.isReady, category, subcategory, sortBy, searchQuery, selectedPriceRange, selectedSizes, selectedColors])

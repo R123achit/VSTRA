@@ -13,16 +13,16 @@ export default async function handler(req, res) {
 
   if (req.method === 'GET') {
     try {
-      const { category, subcategory, featured, search, sort, limit } = req.query
+      const { category, subcategory, featured, search, sort, limit, page, sizes, colors, minPrice, maxPrice } = req.query
 
       let query = {}
 
       if (category && category !== 'all') {
-        query.category = category
+        query.category = { $regex: new RegExp(`^${category}$`, 'i') }
       }
 
       if (subcategory && subcategory !== 'all') {
-        query.subcategory = subcategory
+        query.subcategory = { $regex: new RegExp(`^${subcategory}$`, 'i') }
       }
 
       if (featured === 'true') {
@@ -36,6 +36,20 @@ export default async function handler(req, res) {
         ]
       }
 
+      if (sizes) {
+        query.sizes = { $in: sizes.split(',') }
+      }
+
+      if (colors) {
+        query['colors.name'] = { $in: colors.split(',') }
+      }
+
+      if (minPrice || maxPrice) {
+        query.price = {}
+        if (minPrice) query.price.$gte = Number(minPrice)
+        if (maxPrice) query.price.$lte = Number(maxPrice)
+      }
+
       let sortOption = {}
       if (sort === 'price-asc') sortOption = { price: 1 }
       else if (sort === 'price-desc') sortOption = { price: -1 }
@@ -43,13 +57,23 @@ export default async function handler(req, res) {
       else if (sort === 'rating') sortOption = { rating: -1 }
       else sortOption = { createdAt: -1 }
 
-      // Remove limit to fetch all products
+      // Pagination
+      const limitVal = limit ? parseInt(limit) : 20
+      const pageVal = page ? parseInt(page) : 1
+      const skipVal = (pageVal - 1) * limitVal
+
+      const totalCount = await Product.countDocuments(query)
       const products = await Product.find(query)
         .sort(sortOption)
+        .skip(skipVal)
+        .limit(limitVal)
 
       res.status(200).json({
         success: true,
         count: products.length,
+        total: totalCount,
+        totalPages: Math.ceil(totalCount / limitVal),
+        currentPage: pageVal,
         data: products,
       })
     } catch (error) {

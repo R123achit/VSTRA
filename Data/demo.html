@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Product Search Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .search-box {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            margin-bottom: 30px;
+        }
+
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .search-button {
+            padding: 15px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .search-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .settings {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .settings label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .settings input, .settings select {
+            padding: 8px 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .status {
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.loading {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .results {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .product-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
+
+        .product-info {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .product-info-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+        }
+
+        .product-info-label {
+            color: #666;
+            font-weight: 500;
+        }
+
+        .product-info-value {
+            color: #333;
+            font-weight: 600;
+        }
+
+        .product-price {
+            font-size: 1.5rem;
+            color: #667eea;
+            font-weight: 700;
+        }
+
+        .product-score {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #666;
+        }
+
+        .no-results {
+            text-align: center;
+            padding: 60px 20px;
+            color: white;
+            font-size: 1.2rem;
+        }
+
+        .api-selector {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔍 Product Search Demo</h1>
+            <p>Semantic search powered by FAISS & Sentence Transformers</p>
+        </div>
+
+        <div class="search-box">
+            <div class="api-selector">
+                <label for="apiUrl">API Server:</label>
+                <select id="apiUrl">
+                    <option value="http://localhost:8000">FastAPI (Port 8000)</option>
+                    <option value="http://localhost:5000">Flask (Port 5000)</option>
+                </select>
+            </div>
+
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchQuery" 
+                    placeholder="Search for products... (e.g., blue cotton saree)"
+                    required
+                >
+                <button type="submit" class="search-button" id="searchButton">
+                    Search
+                </button>
+            </form>
+
+            <div class="settings">
+                <label for="topK">Results:</label>
+                <input type="number" id="topK" value="10" min="1" max="50">
+            </div>
+        </div>
+
+        <div class="status" id="status"></div>
+
+        <div class="results" id="results"></div>
+    </div>
+
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchQuery = document.getElementById('searchQuery');
+        const searchButton = document.getElementById('searchButton');
+        const topKInput = document.getElementById('topK');
+        const apiUrlSelect = document.getElementById('apiUrl');
+        const statusDiv = document.getElementById('status');
+        const resultsDiv = document.getElementById('results');
+
+        function showStatus(message, type) {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+
+        function hideStatus() {
+            statusDiv.style.display = 'none';
+        }
+
+        function formatPrice(price) {
+            return `₹${price.toFixed(2)}`;
+        }
+
+        function createProductCard(product) {
+            return `
+                <div class="product-card">
+                    <div class="product-title">${product.title}</div>
+                    <div class="product-info">
+                        <div class="product-info-item">
+                            <span class="product-info-label">Brand:</span>
+                            <span class="product-info-value">${product.brand || 'N/A'}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">Category:</span>
+                            <span class="product-info-value">${product.category || 'N/A'}</span>
+                        </div>
+                        <div class="product-info-item">
+                            <span class="product-info-label">Price:</span>
+                            <span class="product-price">${formatPrice(product.price)}</span>
+                        </div>
+                    </div>
+                    <span class="product-score">Score: ${product.similarity_score.toFixed(4)}</span>
+                </div>
+            `;
+        }
+
+        async function searchProducts(query, topK) {
+            const apiUrl = apiUrlSelect.value;
+            const endpoint = apiUrl.includes('8000') ? '/search' : '/api/search';
+            
+            const response = await fetch(`${apiUrl}${endpoint}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    query: query,
+                    top_k: topK
+                })
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
+            return await response.json();
+        }
+
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const query = searchQuery.value.trim();
+            const topK = parseInt(topKInput.value);
+
+            if (!query) {
+                showStatus('Please enter a search query', 'error');
+                return;
+            }
+
+            // Show loading state
+            searchButton.disabled = true;
+            searchButton.textContent = 'Searching...';
+            showStatus('Searching for products...', 'loading');
+            resultsDiv.innerHTML = '';
+
+            try {
+                const data = await searchProducts(query, topK);
+
+                if (data.success && data.products.length > 0) {
+                    showStatus(`Found ${data.total_results} products for "${data.query}"`, 'success');
+                    
+                    resultsDiv.innerHTML = data.products
+                        .map(product => createProductCard(product))
+                        .join('');
+                } else {
+                    showStatus('No products found', 'error');
+                    resultsDiv.innerHTML = '<div class="no-results">No products found. Try a different search query.</div>';
+                }
+            } catch (error) {
+                console.error('Search error:', error);
+                showStatus(`Error: ${error.message}. Make sure the API server is running!`, 'error');
+                resultsDiv.innerHTML = '';
+            } finally {
+                searchButton.disabled = false;
+                searchButton.textContent = 'Search';
+            }
+        });
+
+        // Example searches
+        const examples = [
+            'blue cotton saree for women',
+            'black formal trouser men',
+            'sports bra women',
+            'red silk saree wedding'
+        ];
+
+        // Add example buttons (optional)
+        window.addEventListener('load', () => {
+            console.log('Product Search Demo loaded!');
+            console.log('Example searches:', examples);
+        });
+    </script>
+</body>
+</html>

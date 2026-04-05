@@ -1,0 +1,152 @@
+# VSTRA Environment Variables for Vercel
+# Copy each variable below and paste into Vercel Dashboard → Settings → Environment Variables
+
+# ============================================
+# REQUIRED VARIABLES
+# ============================================
+
+# MongoDB Database
+MONGODB_URI=mongodb+srv://rachitkesarwani570:Rachit12345@cluster0.uzslm.mongodb.net/vstra-ecommerce
+
+# JWT Secret (for authentication)
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+
+# NextAuth Configuration
+NEXTAUTH_URL=https://your-vercel-domain.vercel.app
+# ⚠️ UPDATE THIS AFTER FIRST DEPLOYMENT WITH YOUR ACTUAL VERCEL URL
+
+# NextAuth Secret (generate with: openssl rand -base64 32)
+NEXTAUTH_SECRET=your-nextauth-secret-key-change-this
+# ⚠️ GENERATE A NEW SECRET: openssl rand -base64 32
+
+# Admin Credentials
+ADMIN_EMAIL=rachitkesarwani1000@gmail.com
+ADMIN_PASSWORD=12345678
+# ⚠️ CHANGE THIS PASSWORD TO SOMETHING SECURE!
+
+# ============================================
+# PAYMENT GATEWAY
+# ============================================
+
+# Razorpay (Payment Gateway)
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_live_RhsoGqDNrYz5Ms
+RAZORPAY_KEY_SECRET=uSHxZqtPkZD1pJtutWqRgxAd
+
+# ============================================
+# EMAIL CONFIGURATION
+# ============================================
+
+# Gmail Configuration (for order confirmations)
+EMAIL_USER=rachitkesarwani322@gmail.com
+EMAIL_PASSWORD=fqfi xgvv kqgx lyjc
+# ⚠️ This must be a Gmail App Password, not your regular password
+# Generate at: https://myaccount.google.com/apppasswords
+
+EMAIL_FROM=VSTRA<rachitkesarwani1000@gmail.com>
+
+# ============================================
+# AI & OPTIONAL SERVICES
+# ============================================
+
+# Gemini AI (for product recommendations)
+GEMINI_API_KEY=AIzaSyAn5zDQRyfLMREvjdgmTmuAKBjok93HEvM
+
+# Stripe (Optional - if using Stripe instead of Razorpay)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_your_key
+STRIPE_SECRET_KEY=sk_test_your_key
+
+# Scraper Configuration (Optional)
+SCRAPER_API_KEY=your_scraper_api_key_here
+SCRAPER_PORT=5000
+
+# ============================================
+# DEPLOYMENT INSTRUCTIONS
+# ============================================
+
+1. Go to: https://vercel.com/new
+2. Import your GitHub repository (R123achit/VSTRA)
+3. Before deploying, click "Environment Variables"
+4. Add each variable above (one by one)
+5. For each variable:
+   - Name: Copy the variable name (e.g., MONGODB_URI)
+   - Value: Copy the value after the = sign
+   - Environment: Select "Production", "Preview", and "Development"
+6. Click "Deploy"
+
+# ============================================
+# POST-DEPLOYMENT STEPS
+# ============================================
+
+After first deployment:
+
+1. Copy your Vercel URL (e.g., vstra-abc123.vercel.app)
+
+2. Update NEXTAUTH_URL:
+   - Go to Settings → Environment Variables
+   - Find NEXTAUTH_URL
+   - Update value to: https://vstra-abc123.vercel.app
+   - Click "Save"
+   - Redeploy: Deployments → Latest → "Redeploy"
+
+3. Test your deployment:
+   - Visit your Vercel URL
+   - Try registering/logging in
+   - Place a test order
+   - Check if email arrives
+
+4. Configure MongoDB Atlas:
+   - Go to MongoDB Atlas Dashboard
+   - Network Access → Add IP Address
+   - Click "Allow Access from Anywhere" (0.0.0.0/0)
+   - Confirm
+
+# ============================================
+# SECURITY RECOMMENDATIONS
+# ============================================
+
+⚠️ BEFORE GOING LIVE:
+
+1. Generate new NEXTAUTH_SECRET:
+   Run in terminal: openssl rand -base64 32
+   Update in Vercel
+
+2. Change ADMIN_PASSWORD:
+   Use a strong password (min 12 characters)
+   Include uppercase, lowercase, numbers, symbols
+
+3. Verify Gmail App Password:
+   Not your regular Gmail password
+   Generate at: https://myaccount.google.com/apppasswords
+
+4. Check Razorpay Keys:
+   Using live keys (rzp_live_...) for production
+   Using test keys (rzp_test_...) for testing
+
+# ============================================
+# TROUBLESHOOTING
+# ============================================
+
+If deployment fails:
+
+1. Check build logs in Vercel dashboard
+2. Verify all required variables are set
+3. Ensure MongoDB allows connections from anywhere
+4. Test locally: npm run build
+5. Check for syntax errors in environment variables
+
+Common Issues:
+
+- "Module not found": Run npm install and commit
+- "MongoDB connection failed": Check network access in Atlas
+- "Email not sending": Verify Gmail App Password
+- "Payment failed": Check Razorpay keys and webhook setup
+
+# ============================================
+# SUPPORT
+# ============================================
+
+Need help? Check:
+- VERCEL_DEPLOYMENT_GUIDE.md (detailed guide)
+- EMAIL_TROUBLESHOOTING.md (email setup)
+- Vercel Docs: https://vercel.com/docs
+- MongoDB Atlas: https://www.mongodb.com/docs/atlas/

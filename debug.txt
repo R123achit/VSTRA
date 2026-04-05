@@ -1,0 +1,30 @@
+Error: NextRouter was not mounted. h
+ttps://nextjs.org/docs/messages/next
+-router-not-mounted
+    at h (C:\Users\rachi\VSTRA\.next
+\server\chunks\3424.js:1:19141)
+    at c (C:\Users\rachi\VSTRA\.next
+\server\chunks\3414.js:1:3860)
+    at renderWithHooks (C:\Users\rac
+hi\VSTRA\node_modules\react-dom\cjs\
+react-dom-server.browser.development
+.js:5658:16)
+    at renderIndeterminateComponent 
+(C:\Users\rachi\VSTRA\node_modules\r
+eact-dom\cjs\react-dom-server.browse
+r.development.js:5732:15)
+    at renderElement (C:\Users\rachi
+\VSTRA\node_modules\react-dom\cjs\re
+act-dom-server.browser.development.j
+s:5957:7)
+    at renderNodeDestructiveImpl (C:
+\Users\rachi\VSTRA\node_modules\reac
+t-dom\cjs\react-dom-server.browser.d
+evelopment.js:6115:11)
+    at renderNodeDestructive (C:\Use
+rs\rachi\VSTRA\node_modules\react-do
+m\cjs\react-dom-server.browser.devel
+opment.js:6087:14)
+    at renderNode (C:\Users\rachi\VS
+TRA\node_modules\react-dom\cjs\react
+-dom-server.browser.
